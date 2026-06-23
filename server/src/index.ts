@@ -8,6 +8,7 @@ import projectRoutes from "./routes/projectRoutes.js";
 import skillRoutes from "./routes/skillRoutes.js";
 import certificationRoutes from "./routes/certificationRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import resumeRoutes from "./routes/resumeRoutes.js";
 
 const app = express()
 const port = Number(process.env.PORT) || 5000
@@ -20,6 +21,14 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/certifications", certificationRoutes);
 app.use("/api/contact", contactRoutes);
+app.use(
+  "/api/resume",
+  resumeRoutes
+);
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
 app.get('/api/health', (_req, res) => {
 	res.json({ status: 'ok' })
 })
