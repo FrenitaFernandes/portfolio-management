@@ -1,22 +1,64 @@
-import { SectionTitle } from '../components/SectionTitle'
-import { skills } from '../data/portfolio'
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
-export function Skills() {
+function Skills() {
+  const [skills, setSkills] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await api.get("/skills");
+        setSkills(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchSkills();
+  }, []);
+
   return (
-    <section id="skills" className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
-      <div className="space-y-6">
-        <SectionTitle title="Technical Skills" description="List your technologies here and manage them later from admin." />
-        <div className="flex flex-wrap gap-3">
+    <section id="skills" className="py-24 px-6">
+      <div className="max-w-6xl mx-auto">
+
+        <h2 className="text-4xl font-bold text-center text-slate-800">
+          Technical Skills
+        </h2>
+
+        <p className="text-center text-slate-600 mt-4">
+          Technologies and tools I work with.
+        </p>
+
+        <div className="mt-12 flex flex-wrap justify-center gap-4">
+
           {skills.map((skill) => (
-            <span
-              key={skill}
-              className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200"
+            <motion.div
+              key={skill._id}
+              whileHover={{ scale: 1.08 }}
+              className="
+                px-6
+                py-3
+                rounded-full
+                bg-white/60
+                backdrop-blur-lg
+                border
+                border-white/40
+                shadow-md
+                text-slate-700
+                font-medium
+                cursor-pointer
+              "
             >
-              {skill}
-            </span>
+              {skill.name}
+            </motion.div>
           ))}
+
         </div>
+
       </div>
     </section>
-  )
+  );
 }
+
+export default Skills;
