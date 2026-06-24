@@ -1,33 +1,23 @@
 import { Schema, model } from "mongoose";
 
-const projectSchema = new Schema(
+const experienceSchema = new Schema(
   {
-    title: {
+    company: {
+      type: String,
+      required: true,
+    },
+
+    role: {
+      type: String,
+      required: true,
+    },
+
+    duration: {
       type: String,
       required: true,
     },
 
     description: {
-      type: String,
-      required: true,
-    },
-
-    tech: {
-      type: [String],
-      required: true,
-    },
-
-    githubLink: {
-      type: String,
-      required: true,
-    },
-
-    projectUrl: {
-      type: String,
-      default: "",
-    },
-
-    image: {
       type: String,
       required: true,
     },
@@ -37,4 +27,7 @@ const projectSchema = new Schema(
   }
 );
 
-export default model("Project", projectSchema);
+export default model(
+  "Experience",
+  experienceSchema
+);
