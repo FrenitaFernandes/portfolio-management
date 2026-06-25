@@ -21,6 +21,11 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("profile");
   const [messages, setMessages] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
+  const [experiences, setExperiences] = useState<any[]>([]);
+  const [education, setEducation] = useState<any[]>([]);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [resume, setResume] = useState<File | null>(null);
 
 const [profileData, setProfileData] = useState({
   name: "",
@@ -39,6 +44,30 @@ const [projectData, setProjectData] = useState({
   tech: "",
   githubLink: "",
   projectUrl: "",
+  image: "",
+});
+
+const [skillData, setSkillData] = useState({
+  name: "",
+  category: "",
+});
+
+const [experienceData, setExperienceData] = useState({
+  company: "",
+  role: "",
+  duration: "",
+  description: "",
+});
+
+const [educationData, setEducationData] = useState({
+  degree: "",
+  college: "",
+  year: "",
+  cgpa: "",
+});
+
+const [certificateData, setCertificateData] = useState({
+  title: "",
   image: "",
 });
 
@@ -84,6 +113,22 @@ const [projectData, setProjectData] = useState({
   if (activeTab === "projects") {
   fetchProjects();
 }
+
+  if (activeTab === "skills") {
+    fetchSkills();
+  }
+
+  if (activeTab === "experience") {
+    fetchExperience();
+  }
+
+  if (activeTab === "education") {
+    fetchEducation();
+  }
+
+  if (activeTab === "certifications") {
+    fetchCertificates();
+  }
 }, [activeTab]);
 
 
@@ -92,6 +137,42 @@ const fetchProjects = async () => {
   try {
     const response = await api.get("/projects");
     setProjects(response.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const fetchSkills = async () => {
+  try {
+    const response = await api.get("/skills");
+    setSkills(response.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const fetchExperience = async () => {
+  try {
+    const response = await api.get("/experience");
+    setExperiences(response.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const fetchEducation = async () => {
+  try {
+    const response = await api.get("/education");
+    setEducation(response.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const fetchCertificates = async () => {
+  try {
+    const response = await api.get("/certifications");
+    setCertificates(response.data);
   } catch (error) {
     console.error(error);
   }
@@ -187,6 +268,197 @@ const handleProjectSubmit = async (
     alert("Failed To Add Project");
   }
 };
+
+const handleSkillChange = (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  setSkillData({
+    ...skillData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleSkillSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await api.post(
+      "/skills",
+      skillData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Skill Added Successfully");
+
+    setSkillData({
+      name: "",
+      category: "",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Failed To Add Skill");
+  }
+};
+
+const handleExperienceChange = (
+  e: React.ChangeEvent<
+    HTMLInputElement | HTMLTextAreaElement
+  >
+) => {
+  setExperienceData({
+    ...experienceData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleExperienceSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await api.post(
+      "/experience",
+      experienceData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Experience Added Successfully");
+
+    setExperienceData({
+      company: "",
+      role: "",
+      duration: "",
+      description: "",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Failed To Add Experience");
+  }
+};
+
+const handleEducationChange = (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  setEducationData({
+    ...educationData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleEducationSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await api.post(
+      "/education",
+      educationData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Education Added Successfully");
+
+    setEducationData({
+      degree: "",
+      college: "",
+      year: "",
+      cgpa: "",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Failed To Add Education");
+  }
+};
+
+const handleCertificateChange = (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  setCertificateData({
+    ...certificateData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleCertificateSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await api.post(
+      "/certifications",
+      certificateData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Certificate Added Successfully");
+
+    setCertificateData({
+      title: "",
+      image: "",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Failed To Add Certificate");
+  }
+};
+
+const handleResumeUpload = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  if (!resume) return;
+
+  const formData = new FormData();
+  formData.append("resume", resume);
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await api.post("/resume", formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    alert("Resume Uploaded Successfully");
+  } catch (error) {
+    console.error(error);
+    alert("Resume Upload Failed");
+  }
+};
+
+const handleDeleteProject = async (id: string) => {  try {    const token = localStorage.getItem("token");    await api.delete(`/projects/${id}`, {      headers: {        Authorization: `Bearer ${token}`,      },    });    setProjects(      projects.filter(        (project) => project._id !== id      )    );    alert("Project Deleted");  } catch (error) {    console.error(error);    alert("Failed To Delete Project");  }};
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="flex">
@@ -465,6 +737,7 @@ const handleProjectSubmit = async (
       </h4>
 
       <p>{project.description}</p>
+      <button  onClick={() => handleDeleteProject(project._id)}  className="mt-3 bg-red-500 text-white px-4 py-2 rounded-lg">  Delete</button>
       
     </div>
   ))}
@@ -474,32 +747,277 @@ const handleProjectSubmit = async (
 )}
 
           {activeTab === "skills" && (
-            <div className="bg-white p-6 rounded-2xl shadow">
-              Skills Management
+            <div className="bg-white p-6 rounded-2xl shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6">
+                Add Skill
+              </h3>
+              <form
+                onSubmit={handleSkillSubmit}
+                className="grid md:grid-cols-2 gap-5"
+              >
+                <input
+                  type="text"
+                  name="name"
+                  value={skillData.name}
+                  onChange={handleSkillChange}
+                  placeholder="Skill Name"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="category"
+                  value={skillData.category}
+                  onChange={handleSkillChange}
+                  placeholder="Frontend / Backend / Database"
+                  className="p-4 border rounded-xl"
+                />
+                <button
+                  type="submit"
+                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
+                >
+                  Add Skill
+                </button>
+              </form>
+              <div className="mt-10">
+                <h3 className="text-xl font-semibold mb-4">
+                  Existing Skills
+                </h3>
+                {skills.map((skill) => (
+                  <div
+                    key={skill._id}
+                    className="border rounded-xl p-4 mb-4"
+                  >
+                    <h4 className="font-bold">
+                      {skill.name}
+                    </h4>
+                    <p>{skill.category}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === "experience" && (
-            <div className="bg-white p-6 rounded-2xl shadow">
-              Experience Management
+            <div className="bg-white p-6 rounded-2xl shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6">
+                Add Experience
+              </h3>
+              <form
+                onSubmit={handleExperienceSubmit}
+                className="grid md:grid-cols-2 gap-5"
+              >
+                <input
+                  type="text"
+                  name="company"
+                  value={experienceData.company}
+                  onChange={handleExperienceChange}
+                  placeholder="Company"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="role"
+                  value={experienceData.role}
+                  onChange={handleExperienceChange}
+                  placeholder="Role"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="duration"
+                  value={experienceData.duration}
+                  onChange={handleExperienceChange}
+                  placeholder="Duration"
+                  className="p-4 border rounded-xl md:col-span-2"
+                />
+                <textarea
+                  rows={4}
+                  name="description"
+                  value={experienceData.description}
+                  onChange={handleExperienceChange}
+                  placeholder="Description"
+                  className="p-4 border rounded-xl md:col-span-2"
+                />
+                <button
+                  type="submit"
+                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
+                >
+                  Add Experience
+                </button>
+              </form>
+              <div className="mt-10">
+                <h3 className="text-xl font-semibold mb-4">
+                  Existing Experience
+                </h3>
+                {experiences.map((experience) => (
+                  <div
+                    key={experience._id}
+                    className="border rounded-xl p-4 mb-4"
+                  >
+                    <h4 className="font-bold">
+                      {experience.role}
+                    </h4>
+                    <p>{experience.company}</p>
+                    <p className="text-sm text-gray-500">
+                      {experience.duration}
+                    </p>
+                    <p className="mt-2">
+                      {experience.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === "education" && (
-            <div className="bg-white p-6 rounded-2xl shadow">
-              Education Management
+            <div className="bg-white p-6 rounded-2xl shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6">
+                Add Education
+              </h3>
+              <form
+                onSubmit={handleEducationSubmit}
+                className="grid md:grid-cols-2 gap-5"
+              >
+                <input
+                  type="text"
+                  name="degree"
+                  value={educationData.degree}
+                  onChange={handleEducationChange}
+                  placeholder="Degree"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="college"
+                  value={educationData.college}
+                  onChange={handleEducationChange}
+                  placeholder="College"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="year"
+                  value={educationData.year}
+                  onChange={handleEducationChange}
+                  placeholder="Year"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="cgpa"
+                  value={educationData.cgpa}
+                  onChange={handleEducationChange}
+                  placeholder="CGPA"
+                  className="p-4 border rounded-xl"
+                />
+                <button
+                  type="submit"
+                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
+                >
+                  Add Education
+                </button>
+              </form>
+              <div className="mt-10">
+                <h3 className="text-xl font-semibold mb-4">
+                  Existing Education
+                </h3>
+                {education.map((item) => (
+                  <div
+                    key={item._id}
+                    className="border rounded-xl p-4 mb-4"
+                  >
+                    <h4 className="font-bold">
+                      {item.degree}
+                    </h4>
+                    <p>{item.college}</p>
+                    <p>{item.year}</p>
+                    <p>CGPA: {item.cgpa}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === "certifications" && (
-            <div className="bg-white p-6 rounded-2xl shadow">
-              Certifications Management
+            <div className="bg-white p-6 rounded-2xl shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6">
+                Add Certificate
+              </h3>
+              <form
+                onSubmit={handleCertificateSubmit}
+                className="grid gap-5"
+              >
+                <input
+                  type="text"
+                  name="title"
+                  value={certificateData.title}
+                  onChange={handleCertificateChange}
+                  placeholder="Certificate Title"
+                  className="p-4 border rounded-xl"
+                />
+                <input
+                  type="text"
+                  name="image"
+                  value={certificateData.image}
+                  onChange={handleCertificateChange}
+                  placeholder="/uploads/images/certificate.jpg"
+                  className="p-4 border rounded-xl"
+                />
+                <button
+                  type="submit"
+                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700"
+                >
+                  Add Certificate
+                </button>
+              </form>
+              <div className="mt-10">
+                <h3 className="text-xl font-semibold mb-4">
+                  Existing Certificates
+                </h3>
+                {certificates.map((certificate) => (
+                  <div
+                    key={certificate._id}
+                    className="border rounded-xl p-4 mb-4"
+                  >
+                    <h4 className="font-bold">
+                      {certificate.title}
+                    </h4>
+                    <p>{certificate.image}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === "resume" && (
-            <div className="bg-white p-6 rounded-2xl shadow">
-              Resume Management
+            <div className="bg-white p-6 rounded-2xl shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6">
+                Resume Management
+              </h3>
+              <form
+                onSubmit={handleResumeUpload}
+                className="space-y-5"
+              >
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) =>
+                    setResume(
+                      e.target.files
+                        ? e.target.files[0]
+                        : null
+                    )
+                  }
+                  className="p-4 border rounded-xl w-full"
+                />
+                <button
+                  type="submit"
+                  className="bg-violet-600 text-white px-8 py-3 rounded-xl"
+                >
+                  Upload Resume
+                </button>
+              </form>
             </div>
           )}
 

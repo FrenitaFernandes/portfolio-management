@@ -16,9 +16,14 @@ import experienceRoutes from "./routes/experienceRoutes.js";
 
 const app = express()
 const port = Number(process.env.PORT) || 5000
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
 
-app.use(cors({ origin: clientUrl, credentials: true }))
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+  ],
+  credentials: true,
+}))
 app.use(express.json())
 app.use('/api/auth', authRoutes);
 app.use("/api/projects", projectRoutes);
