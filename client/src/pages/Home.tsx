@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
 import BackgroundAnimation from "../components/BackgroundAnimation";
+
 import Hero from "../sections/Hero";
 import About from "../sections/About";
 import Resume from "../sections/Resume";
@@ -9,24 +10,33 @@ import Experience from "../sections/Experience";
 import Education from "../sections/Education";
 import Certifications from "../sections/Certifications";
 import Contact from "../sections/Contact";
+
 import Footer from "../components/Footer";
 
 function Home() {
   return (
     <>
+      {/* Animated Background */}
       <BackgroundAnimation />
+
+      {/* Navigation */}
       <Navbar />
 
-      <Hero />
-      <About />
-      <Resume />
-      <Skills />
-      <Projects />
-      <Experience />
+      {/* Main Content */}
+      <main>
+        <Hero />
+        <About />
+        <Resume />
+        <Skills />
+        <Projects />
+        <Experience />
         <Education />
         <Certifications />
         <Contact />
-        <Footer />
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </>
   );
 }

@@ -19,44 +19,93 @@ function Skills() {
   }, []);
 
   return (
-    <section id="skills" className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section id="skills" className="py-20 px-6">
 
-        <h2 className="text-4xl font-bold text-center text-slate-800">
-          Technical Skills
-        </h2>
+      <div className="max-w-7xl mx-auto">
 
-        <p className="text-center text-slate-600 mt-4">
-          Technologies and tools I work with.
-        </p>
+        <div className="text-center">
 
-        <div className="mt-12 flex flex-wrap justify-center gap-4">
+          <span className="text-violet-600 uppercase tracking-widest font-semibold">
+            My Expertise
+          </span>
 
-          {skills.map((skill) => (
+          <h2 className="text-4xl md:text-5xl font-bold mt-3 text-slate-900">
+            Technical Skills
+          </h2>
+
+          <p className="mt-5 max-w-2xl mx-auto text-slate-600 leading-8">
+            Technologies and tools that I use to build modern,
+            scalable and user-friendly web applications.
+          </p>
+
+        </div>
+
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-16">
+
+          {skills.map((skill, index) => (
+
             <motion.div
               key={skill._id}
-              whileHover={{ scale: 1.08 }}
+              initial={{
+                opacity: 0,
+                y: 30,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+              }}
+              transition={{
+                duration: 0.4,
+                delay: index * 0.05,
+              }}
+              whileHover={{
+                y: -8,
+              }}
               className="
-                px-6
-                py-3
-                rounded-full
-                bg-white/60
-                backdrop-blur-lg
+                bg-white
+                rounded-2xl
+                shadow-lg
                 border
-                border-white/40
-                shadow-md
-                text-slate-700
-                font-medium
-                cursor-pointer
+                border-slate-100
+                p-8
+                text-center
+                transition
               "
             >
-              {skill.name}
+
+              <div
+                className="
+                  w-16
+                  h-16
+                  rounded-full
+                  bg-violet-100
+                  text-violet-600
+                  font-bold
+                  text-xl
+                  flex
+                  items-center
+                  justify-center
+                  mx-auto
+                "
+              >
+                {skill.name.charAt(0)}
+              </div>
+
+              <h3 className="mt-5 text-lg font-semibold text-slate-800">
+                {skill.name}
+              </h3>
+
             </motion.div>
+
           ))}
 
         </div>
 
       </div>
+
     </section>
   );
 }

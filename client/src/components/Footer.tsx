@@ -2,40 +2,61 @@ import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 
 function Footer() {
   return (
-    <footer className="py-10 px-6 border-t border-white/30 bg-white/30 backdrop-blur-lg">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+    <footer className="border-t border-slate-200 bg-white py-10 px-6">
 
-        <div>
-          <h3 className="text-xl font-bold text-violet-600">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+
+        {/* Left */}
+
+        <div className="text-center md:text-left">
+
+          <h3 className="text-2xl font-bold text-violet-600">
             Frenita Fernandes
           </h3>
 
-          <p className="text-slate-600 mt-2">
-            MCA Student | Full Stack Developer
+          <p className="mt-2 text-slate-600">
+            Full Stack Developer | MCA Student
           </p>
+
         </div>
 
-        <div className="flex gap-5 text-xl">
+        {/* Center */}
 
-          <a href="#">
+        <div className="flex gap-5">
+
+          <a
+            href="#"
+            className="w-11 h-11 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center hover:bg-violet-600 hover:text-white transition"
+          >
             <FaGithub />
           </a>
 
-          <a href="#">
+          <a
+            href="#"
+            className="w-11 h-11 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center hover:bg-violet-600 hover:text-white transition"
+          >
             <FaLinkedin />
           </a>
 
-          <a href="#">
+          <a
+            href="#"
+            className="w-11 h-11 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center hover:bg-violet-600 hover:text-white transition"
+          >
             <FaEnvelope />
           </a>
 
         </div>
 
-        <div className="text-slate-500 text-sm">
-          © 2026 Frenita Fernandes. All Rights Reserved.
+        {/* Right */}
+
+        <div className="text-sm text-slate-500 text-center md:text-right">
+          © 2026 Frenita Fernandes
+          <br />
+          All Rights Reserved
         </div>
 
       </div>
+
     </footer>
   );
 }

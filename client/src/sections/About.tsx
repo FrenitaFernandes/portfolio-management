@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import api from "../services/api";
-
+import api, { ASSET_BASE_URL } from "../services/api";
 function About() {
   const [profile, setProfile] = useState<any>(null);
 
@@ -48,7 +47,7 @@ function About() {
               {/* Profile Image */}
               <div className="flex justify-center">
                 <img
-                  src={`http://localhost:5000${profile.profileImage}`}
+                  src={`${ASSET_BASE_URL}${profile.profileImage}`}
                   alt={profile.name}
                   className="w-64 h-64 rounded-3xl object-cover shadow-xl"
                 />
