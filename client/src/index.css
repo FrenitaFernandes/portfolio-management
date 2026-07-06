@@ -23,6 +23,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 body {
@@ -31,6 +32,18 @@ body {
   color: var(--text);
   overflow-x: hidden;
   line-height: 1.65;
+}
+
+p,
+label,
+input,
+textarea,
+button,
+a,
+li,
+th,
+td {
+  font-size: 1rem;
 }
 
 h1,
@@ -94,7 +107,7 @@ body::after {
 }
 
 .section-title {
-  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-size: clamp(2rem, 4.4vw, 3.05rem);
   line-height: 1.05;
   color: var(--text);
   margin-top: 0.65rem;

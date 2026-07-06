@@ -151,35 +151,42 @@ function Contact() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="glass-card p-7 md:p-9 space-y-5"
+            autoComplete="off"
           >
+            <p className="text-sm text-[var(--muted)]">
+              Your details below are sent to the portfolio owner.
+            </p>
             <input
               type="text"
               name="name"
-              placeholder="Full Name"
+              placeholder="Your full name"
               value={formData.name}
               onChange={handleChange}
               required
               className="input-shell"
+              autoComplete="name"
             />
 
             <input
               type="email"
               name="email"
-              placeholder="Email Address"
+              placeholder="Your email address"
               value={formData.email}
               onChange={handleChange}
               required
               className="input-shell"
+              autoComplete="email"
             />
 
             <input
               type="tel"
               name="phone"
-              placeholder="Phone Number"
+              placeholder="Your phone number"
               value={formData.phone}
               onChange={handleChange}
               required
               className="input-shell"
+              autoComplete="tel"
             />
 
             <textarea

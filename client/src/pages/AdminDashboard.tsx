@@ -54,6 +54,7 @@ type Message = BasicItem & {
   email: string;
   phone: string;
   message: string;
+  createdAt?: string;
 };
 
 type Resume = {
@@ -76,6 +77,12 @@ function AdminDashboard() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [resumeInfo, setResumeInfo] = useState<Resume>(null);
   const [resume, setResume] = useState<File | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [projectImageFile, setProjectImageFile] = useState<File | null>(null);
+  const [certificateImageFile, setCertificateImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState("");
+  const [projectImagePreview, setProjectImagePreview] = useState("");
+  const [certificateImagePreview, setCertificateImagePreview] = useState("");
 
   const [profileData, setProfileData] = useState({
     profileImage: "",
@@ -133,6 +140,21 @@ function AdminDashboard() {
     [token]
   );
 
+  const uploadImageFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await api.post("/upload/image", formData, {
+      ...authConfig,
+      headers: {
+        ...authConfig.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data?.imageUrl as string;
+  };
+
   const tabs: { key: TabKey; label: string; icon: ReactNode }[] = [
     { key: "profile", label: "Profile", icon: <FaUser /> },
     { key: "projects", label: "Projects", icon: <FaProjectDiagram /> },
@@ -187,6 +209,12 @@ function AdminDashboard() {
           linkedin: data.linkedin || "",
           about: data.about || "",
         });
+
+        setProfileImagePreview(
+          data.profileImage
+            ? `${ASSET_BASE_URL}${data.profileImage}`
+            : ""
+        );
       }
     } catch (error) {
       console.error(error);
@@ -273,7 +301,20 @@ function AdminDashboard() {
     e.preventDefault();
 
     try {
-      await api.put("/profile", profileData, authConfig);
+      const imageUrl = profileImageFile
+        ? await uploadImageFile(profileImageFile)
+        : profileData.profileImage;
+
+      await api.put(
+        "/profile",
+        {
+          ...profileData,
+          profileImage: imageUrl,
+        },
+        authConfig
+      );
+
+      setProfileImageFile(null);
       alert("Profile updated successfully");
       await fetchProfile();
     } catch (error) {
@@ -293,10 +334,17 @@ function AdminDashboard() {
     e.preventDefault();
 
     try {
+      let projectImageUrl = projectData.image;
+
+      if (projectImageFile) {
+        projectImageUrl = await uploadImageFile(projectImageFile);
+      }
+
       await api.post(
         "/projects",
         {
           ...projectData,
+          image: projectImageUrl,
           tech: projectData.tech
             .split(",")
             .map((item) => item.trim())
@@ -314,6 +362,8 @@ function AdminDashboard() {
         projectUrl: "",
         image: "",
       });
+      setProjectImageFile(null);
+      setProjectImagePreview("");
       await fetchProjects();
     } catch (error) {
       console.error(error);
@@ -411,13 +461,30 @@ function AdminDashboard() {
     e.preventDefault();
 
     try {
-      await api.post("/certifications", certificateData, authConfig);
+      let certificateImageUrl = certificateData.image;
+
+      if (certificateImageFile) {
+        certificateImageUrl = await uploadImageFile(
+          certificateImageFile
+        );
+      }
+
+      await api.post(
+        "/certifications",
+        {
+          ...certificateData,
+          image: certificateImageUrl,
+        },
+        authConfig
+      );
       alert("Certificate added successfully");
 
       setCertificateData({
         title: "",
         image: "",
       });
+      setCertificateImageFile(null);
+      setCertificateImagePreview("");
       await fetchCertificates();
     } catch (error) {
       console.error(error);
@@ -576,14 +643,32 @@ function AdminDashboard() {
             <div>
               <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Profile Management</h3>
               <form onSubmit={handleProfileSubmit} className="grid md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="profileImage"
-                  value={profileData.profileImage}
-                  onChange={handleProfileChange}
-                  placeholder="/uploads/images/profile.jpg"
-                  className="input-shell md:col-span-2"
-                />
+                <div className="md:col-span-2 grid gap-3">
+                  <label className="text-sm font-semibold text-[var(--muted)]">
+                    Profile Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="input-shell"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setProfileImageFile(file);
+                      if (file) {
+                        setProfileImagePreview(
+                          URL.createObjectURL(file)
+                        );
+                      }
+                    }}
+                  />
+                  {profileImagePreview && (
+                    <img
+                      src={profileImagePreview}
+                      alt="Profile preview"
+                      className="h-40 w-40 rounded-2xl object-cover border border-slate-200"
+                    />
+                  )}
+                </div>
                 <input type="text" name="name" value={profileData.name} onChange={handleProfileChange} placeholder="Full Name" className="input-shell" />
                 <input type="text" name="title" value={profileData.title} onChange={handleProfileChange} placeholder="Title" className="input-shell" />
                 <input type="email" name="email" value={profileData.email} onChange={handleProfileChange} placeholder="Email" className="input-shell" />
@@ -605,7 +690,33 @@ function AdminDashboard() {
                 <input type="text" name="tech" value={projectData.tech} onChange={handleProjectChange} placeholder="React, Node.js, MongoDB" className="input-shell" required />
                 <input type="text" name="githubLink" value={projectData.githubLink} onChange={handleProjectChange} placeholder="GitHub Link" className="input-shell" required />
                 <input type="text" name="projectUrl" value={projectData.projectUrl} onChange={handleProjectChange} placeholder="Live Demo URL" className="input-shell" />
-                <input type="text" name="image" value={projectData.image} onChange={handleProjectChange} placeholder="/uploads/images/project.jpg" className="input-shell md:col-span-2" required />
+                <div className="md:col-span-2 grid gap-3">
+                  <label className="text-sm font-semibold text-[var(--muted)]">
+                    Project Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="input-shell"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setProjectImageFile(file);
+                      if (file) {
+                        setProjectImagePreview(
+                          URL.createObjectURL(file)
+                        );
+                      }
+                    }}
+                    required={!projectData.image}
+                  />
+                  {projectImagePreview && (
+                    <img
+                      src={projectImagePreview}
+                      alt="Project preview"
+                      className="h-40 w-full max-w-sm rounded-2xl object-cover border border-slate-200"
+                    />
+                  )}
+                </div>
                 <textarea rows={5} name="description" value={projectData.description} onChange={handleProjectChange} placeholder="Project Description" className="input-shell md:col-span-2 resize-none" required />
                 <button type="submit" className="primary-btn md:col-span-2">Add Project</button>
               </form>
@@ -739,7 +850,33 @@ function AdminDashboard() {
               <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Add Certificate</h3>
               <form onSubmit={handleCertificateSubmit} className="grid gap-4">
                 <input type="text" name="title" value={certificateData.title} onChange={handleCertificateChange} placeholder="Certificate Title" className="input-shell" required />
-                <input type="text" name="image" value={certificateData.image} onChange={handleCertificateChange} placeholder="/uploads/images/certificate.jpg" className="input-shell" required />
+                <div className="grid gap-3">
+                  <label className="text-sm font-semibold text-[var(--muted)]">
+                    Certificate Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="input-shell"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setCertificateImageFile(file);
+                      if (file) {
+                        setCertificateImagePreview(
+                          URL.createObjectURL(file)
+                        );
+                      }
+                    }}
+                    required={!certificateData.image}
+                  />
+                  {certificateImagePreview && (
+                    <img
+                      src={certificateImagePreview}
+                      alt="Certificate preview"
+                      className="h-40 w-full max-w-sm rounded-2xl object-cover border border-slate-200"
+                    />
+                  )}
+                </div>
                 <button type="submit" className="primary-btn">Add Certificate</button>
               </form>
 
@@ -811,19 +948,23 @@ function AdminDashboard() {
 
           {activeTab === "messages" && (
             <div>
-              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Contact Messages</h3>
+              <h3 className="display text-2xl font-bold mb-2 text-[var(--text)]">Contact Messages</h3>
+              <p className="text-sm text-[var(--muted)] mb-4">
+                These are messages sent by visitors from your frontend contact form.
+              </p>
 
               {messages.length === 0 ? (
                 <p className="text-[var(--muted)]">No messages available.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px]">
+                  <table className="w-full min-w-[900px]">
                     <thead>
                       <tr className="text-left border-b border-slate-200">
-                        <th className="py-3 px-3">Name</th>
-                        <th className="py-3 px-3">Email</th>
-                        <th className="py-3 px-3">Phone</th>
-                        <th className="py-3 px-3">Message</th>
+                        <th className="py-3 px-3">Sender Name</th>
+                        <th className="py-3 px-3">Sender Email</th>
+                        <th className="py-3 px-3">Sender Phone</th>
+                        <th className="py-3 px-3">Opportunity Message</th>
+                        <th className="py-3 px-3">Received</th>
                         <th className="py-3 px-3">Action</th>
                       </tr>
                     </thead>
@@ -834,6 +975,11 @@ function AdminDashboard() {
                           <td className="py-3 px-3 text-[var(--muted)]">{msg.email}</td>
                           <td className="py-3 px-3 text-[var(--muted)]">{msg.phone}</td>
                           <td className="py-3 px-3 text-[var(--muted)]">{msg.message}</td>
+                          <td className="py-3 px-3 text-[var(--muted)] text-sm">
+                            {msg.createdAt
+                              ? new Date(msg.createdAt).toLocaleString()
+                              : "-"}
+                          </td>
                           <td className="py-3 px-3">
                             <button
                               className="secondary-btn text-sm"
