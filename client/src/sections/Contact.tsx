@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaEnvelope,
   FaPhone,
@@ -15,6 +15,20 @@ function Contact() {
     phone: "",
     message: "",
   });
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("/profile");
+        setProfile(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -48,106 +62,96 @@ function Contact() {
   };
 
   return (
-    <section id="contact" className="py-28 px-6">
-
-      <div className="max-w-7xl mx-auto">
-
-        <div className="text-center mb-16">
-
-          <span className="uppercase tracking-widest text-violet-600 font-semibold">
+    <section id="contact" className="section-block">
+      <div className="section-shell">
+        <div className="text-center mb-14">
+          <span className="section-tag">
             Contact
           </span>
 
-          <h2 className="text-4xl md:text-5xl font-bold mt-3 text-slate-900">
+          <h2 className="section-title display">
             Let's Work Together
           </h2>
 
-          <p className="mt-5 max-w-2xl mx-auto text-slate-600 leading-8">
+          <p className="section-subtitle">
             Have a project, internship opportunity or collaboration in
             mind? Feel free to contact me.
           </p>
-
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-10 items-start">
-
-          {/* Contact Information */}
-
-          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
-
-            <h3 className="text-2xl font-bold text-slate-900">
+        <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-8 items-start">
+          <div className="glass-card p-7 md:p-9">
+            <h3 className="display text-3xl font-bold text-[var(--text)]">
               Get in Touch
             </h3>
 
-            <p className="mt-4 text-slate-600 leading-8">
+            <p className="mt-4 text-[var(--muted)] leading-8 text-lg">
               I'm always open to discussing internships,
               freelance work and exciting opportunities.
             </p>
 
-            <div className="mt-10 space-y-7">
-
+            <div className="mt-9 space-y-6">
               <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
+                <div className="w-12 h-12 rounded-full bg-[var(--soft-primary)] flex items-center justify-center text-[var(--primary)]">
                   <FaEnvelope />
                 </div>
 
                 <div>
-                  <p className="font-semibold">Email</p>
-                  <p className="text-slate-600">admin@gmail.com</p>
+                  <p className="font-semibold text-[var(--text)]">Email</p>
+                  <p className="text-[var(--muted)] break-all">
+                    {profile?.email || "your-email@example.com"}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
+                <div className="w-12 h-12 rounded-full bg-[var(--soft-primary)] flex items-center justify-center text-[var(--primary)]">
                   <FaPhone />
                 </div>
 
                 <div>
-                  <p className="font-semibold">Phone</p>
-                  <p className="text-slate-600">9876543210</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
-                  <FaGithub />
-                </div>
-
-                <div>
-                  <p className="font-semibold">GitHub</p>
-                  <p className="text-slate-600">
-                    github.com/yourusername
+                  <p className="font-semibold text-[var(--text)]">Phone</p>
+                  <p className="text-[var(--muted)]">
+                    {profile?.phone || "Add phone in admin profile"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
-                  <FaLinkedin />
-                </div>
+              <div className="flex flex-wrap gap-3 pt-2">
+                {profile?.github && (
+                  <a
+                    href={profile.github}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="secondary-btn"
+                  >
+                    <FaGithub />
+                    GitHub
+                  </a>
+                )}
 
-                <div>
-                  <p className="font-semibold">LinkedIn</p>
-                  <p className="text-slate-600">
-                    linkedin.com/in/yourprofile
-                  </p>
-                </div>
+                {profile?.linkedin && (
+                  <a
+                    href={profile.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="secondary-btn"
+                  >
+                    <FaLinkedin />
+                    LinkedIn
+                  </a>
+                )}
               </div>
-
             </div>
-
           </div>
-
-          {/* Contact Form */}
 
           <motion.form
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-3xl shadow-xl border border-slate-100 p-10 space-y-6"
+            className="glass-card p-7 md:p-9 space-y-5"
           >
-
             <input
               type="text"
               name="name"
@@ -155,7 +159,7 @@ function Contact() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full p-4 rounded-xl border border-slate-300 focus:border-violet-600 focus:ring-2 focus:ring-violet-100 outline-none"
+              className="input-shell"
             />
 
             <input
@@ -165,7 +169,7 @@ function Contact() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full p-4 rounded-xl border border-slate-300 focus:border-violet-600 focus:ring-2 focus:ring-violet-100 outline-none"
+              className="input-shell"
             />
 
             <input
@@ -175,7 +179,7 @@ function Contact() {
               value={formData.phone}
               onChange={handleChange}
               required
-              className="w-full p-4 rounded-xl border border-slate-300 focus:border-violet-600 focus:ring-2 focus:ring-violet-100 outline-none"
+              className="input-shell"
             />
 
             <textarea
@@ -185,22 +189,18 @@ function Contact() {
               value={formData.message}
               onChange={handleChange}
               required
-              className="w-full p-4 rounded-xl border border-slate-300 focus:border-violet-600 focus:ring-2 focus:ring-violet-100 outline-none resize-none"
+              className="input-shell resize-none"
             />
 
             <button
               type="submit"
-              className="w-full py-4 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-700 transition"
+              className="primary-btn w-full py-3"
             >
               Send Message
             </button>
-
           </motion.form>
-
         </div>
-
       </div>
-
     </section>
   );
 }

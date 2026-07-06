@@ -1,100 +1,191 @@
-import { useState, useEffect } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import {
-  FaUser,
-  FaProjectDiagram,
-  FaTools,
+  FaBars,
   FaBriefcase,
-  FaGraduationCap,
   FaCertificate,
-  FaFilePdf,
   FaEnvelope,
+  FaFilePdf,
+  FaGraduationCap,
+  FaProjectDiagram,
   FaSignOutAlt,
+  FaTimes,
+  FaTools,
+  FaTrash,
+  FaUser,
 } from "react-icons/fa";
-
-
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import api, { ASSET_BASE_URL } from "../services/api";
+
+type TabKey =
+  | "profile"
+  | "projects"
+  | "skills"
+  | "experience"
+  | "education"
+  | "certifications"
+  | "resume"
+  | "messages";
+
+type BasicItem = { _id: string };
+type Project = BasicItem & {
+  title: string;
+  description: string;
+  tech: string[];
+  githubLink: string;
+  projectUrl?: string;
+  image: string;
+};
+type Skill = BasicItem & { name: string; category: string };
+type Experience = BasicItem & {
+  company: string;
+  role: string;
+  duration: string;
+  description: string;
+};
+type Education = BasicItem & {
+  degree: string;
+  college: string;
+  year: string;
+  cgpa: string;
+};
+type Certificate = BasicItem & { title: string; image: string };
+type Message = BasicItem & {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+};
+
+type Resume = {
+  fileName: string;
+  fileUrl: string;
+} | null;
 
 function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("profile");
-  const [messages, setMessages] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [skills, setSkills] = useState<any[]>([]);
-  const [experiences, setExperiences] = useState<any[]>([]);
-  const [education, setEducation] = useState<any[]>([]);
-  const [certificates, setCertificates] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<TabKey>("profile");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [resumeInfo, setResumeInfo] = useState<Resume>(null);
   const [resume, setResume] = useState<File | null>(null);
 
-const [profileData, setProfileData] = useState({
-  name: "",
-  title: "",
-  email: "",
-  phone: "",
-  location: "",
-  github: "",
-  linkedin: "",
-  about: "",
-});
+  const [profileData, setProfileData] = useState({
+    profileImage: "",
+    name: "",
+    title: "",
+    email: "",
+    phone: "",
+    location: "",
+    github: "",
+    linkedin: "",
+    about: "",
+  });
 
-const [projectData, setProjectData] = useState({
-  title: "",
-  description: "",
-  tech: "",
-  githubLink: "",
-  projectUrl: "",
-  image: "",
-});
+  const [projectData, setProjectData] = useState({
+    title: "",
+    description: "",
+    tech: "",
+    githubLink: "",
+    projectUrl: "",
+    image: "",
+  });
 
-const [skillData, setSkillData] = useState({
-  name: "",
-  category: "",
-});
+  const [skillData, setSkillData] = useState({
+    name: "",
+    category: "",
+  });
 
-const [experienceData, setExperienceData] = useState({
-  company: "",
-  role: "",
-  duration: "",
-  description: "",
-});
+  const [experienceData, setExperienceData] = useState({
+    company: "",
+    role: "",
+    duration: "",
+    description: "",
+  });
 
-const [educationData, setEducationData] = useState({
-  degree: "",
-  college: "",
-  year: "",
-  cgpa: "",
-});
+  const [educationData, setEducationData] = useState({
+    degree: "",
+    college: "",
+    year: "",
+    cgpa: "",
+  });
 
-const [certificateData, setCertificateData] = useState({
-  title: "",
-  image: "",
-});
+  const [certificateData, setCertificateData] = useState({
+    title: "",
+    image: "",
+  });
+
+  const token = localStorage.getItem("token");
+
+  const authConfig = useMemo(
+    () => ({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    [token]
+  );
+
+  const tabs: { key: TabKey; label: string; icon: ReactNode }[] = [
+    { key: "profile", label: "Profile", icon: <FaUser /> },
+    { key: "projects", label: "Projects", icon: <FaProjectDiagram /> },
+    { key: "skills", label: "Skills", icon: <FaTools /> },
+    { key: "experience", label: "Experience", icon: <FaBriefcase /> },
+    { key: "education", label: "Education", icon: <FaGraduationCap /> },
+    { key: "certifications", label: "Certifications", icon: <FaCertificate /> },
+    { key: "resume", label: "Resume", icon: <FaFilePdf /> },
+    { key: "messages", label: "Messages", icon: <FaEnvelope /> },
+  ];
 
   useEffect(() => {
-  const fetchMessages = async () => {
-    try {
-      const response = await api.get("/contact");
-      setMessages(response.data);
-    } catch (error) {
-      console.error(error);
+    if (!token) {
+      navigate("/admin/login");
     }
-  };
+  }, [navigate, token]);
+
+  useEffect(() => {
+    const fetchByTab = async () => {
+      setLoading(true);
+      try {
+        if (activeTab === "profile") await fetchProfile();
+        if (activeTab === "projects") await fetchProjects();
+        if (activeTab === "skills") await fetchSkills();
+        if (activeTab === "experience") await fetchExperience();
+        if (activeTab === "education") await fetchEducation();
+        if (activeTab === "certifications") await fetchCertificates();
+        if (activeTab === "resume") await fetchResume();
+        if (activeTab === "messages") await fetchMessages();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchByTab();
+  }, [activeTab]);
 
   const fetchProfile = async () => {
     try {
       const response = await api.get("/profile");
+      const data = response.data;
 
-      if (response.data) {
+      if (data) {
         setProfileData({
-          name: response.data.name || "",
-          title: response.data.title || "",
-          email: response.data.email || "",
-          phone: response.data.phone || "",
-          location: response.data.location || "",
-          github: response.data.github || "",
-          linkedin: response.data.linkedin || "",
-          about: response.data.about || "",
+          profileImage: data.profileImage || "",
+          name: data.name || "",
+          title: data.title || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          location: data.location || "",
+          github: data.github || "",
+          linkedin: data.linkedin || "",
+          about: data.about || "",
         });
       }
     } catch (error) {
@@ -102,695 +193,472 @@ const [certificateData, setCertificateData] = useState({
     }
   };
 
-  if (activeTab === "messages") {
-    fetchMessages();
-  }
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get("/projects");
+      setProjects(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (activeTab === "profile") {
-    fetchProfile();
-  }
+  const fetchSkills = async () => {
+    try {
+      const response = await api.get("/skills");
+      setSkills(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (activeTab === "projects") {
-  fetchProjects();
-}
+  const fetchExperience = async () => {
+    try {
+      const response = await api.get("/experience");
+      setExperiences(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (activeTab === "skills") {
-    fetchSkills();
-  }
+  const fetchEducation = async () => {
+    try {
+      const response = await api.get("/education");
+      setEducation(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (activeTab === "experience") {
-    fetchExperience();
-  }
+  const fetchCertificates = async () => {
+    try {
+      const response = await api.get("/certifications");
+      setCertificates(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (activeTab === "education") {
-    fetchEducation();
-  }
+  const fetchMessages = async () => {
+    try {
+      const response = await api.get("/contact", authConfig);
+      setMessages(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (activeTab === "certifications") {
-    fetchCertificates();
-  }
-}, [activeTab]);
+  const fetchResume = async () => {
+    try {
+      const response = await api.get("/resume");
+      setResumeInfo(response.data || null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-
-
-const fetchProjects = async () => {
-  try {
-    const response = await api.get("/projects");
-    setProjects(response.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const fetchSkills = async () => {
-  try {
-    const response = await api.get("/skills");
-    setSkills(response.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const fetchExperience = async () => {
-  try {
-    const response = await api.get("/experience");
-    setExperiences(response.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const fetchEducation = async () => {
-  try {
-    const response = await api.get("/education");
-    setEducation(response.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const fetchCertificates = async () => {
-  try {
-    const response = await api.get("/certifications");
-    setCertificates(response.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/admin/login");
   };
 
-  const handleProfileChange = (
-  e: React.ChangeEvent<
-    HTMLInputElement | HTMLTextAreaElement
-  >
-) => {
-  setProfileData({
-    ...profileData,
-    [e.target.name]: e.target.value,
-  });
-};
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setProfileData({
+      ...profileData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-const handleProfileSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      await api.put("/profile", profileData, authConfig);
+      alert("Profile updated successfully");
+      await fetchProfile();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update profile");
+    }
+  };
 
-    await api.put(
-      "/profile",
-      profileData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    alert("Profile Updated Successfully");
-  } catch (error) {
-    console.error(error);
-    alert("Failed To Update Profile");
-  }
-};
-
-const handleProjectChange = (
-  e: React.ChangeEvent<
-    HTMLInputElement | HTMLTextAreaElement
-  >
-) => {
-  setProjectData({
-    ...projectData,
-    [e.target.name]: e.target.value,
-  });
-};
-
-const handleProjectSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
-
-  try {
-    const token = localStorage.getItem("token");
-
-    await api.post(
-      "/projects",
-      {
-        ...projectData,
-        tech: projectData.tech
-          .split(",")
-          .map((item) => item.trim()),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    alert("Project Added Successfully");
-
+  const handleProjectChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProjectData({
-      title: "",
-      description: "",
-      tech: "",
-      githubLink: "",
-      projectUrl: "",
-      image: "",
+      ...projectData,
+      [e.target.name]: e.target.value,
     });
-  } catch (error) {
-    console.error(error);
-    alert("Failed To Add Project");
-  }
-};
+  };
 
-const handleSkillChange = (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  setSkillData({
-    ...skillData,
-    [e.target.name]: e.target.value,
-  });
-};
+  const handleProjectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-const handleSkillSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
-
-  try {
-    const token = localStorage.getItem("token");
-
-    await api.post(
-      "/skills",
-      skillData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      await api.post(
+        "/projects",
+        {
+          ...projectData,
+          tech: projectData.tech
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
         },
-      }
-    );
+        authConfig
+      );
 
-    alert("Skill Added Successfully");
+      alert("Project added successfully");
+      setProjectData({
+        title: "",
+        description: "",
+        tech: "",
+        githubLink: "",
+        projectUrl: "",
+        image: "",
+      });
+      await fetchProjects();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add project");
+    }
+  };
 
+  const handleSkillChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSkillData({
-      name: "",
-      category: "",
+      ...skillData,
+      [e.target.name]: e.target.value,
     });
-  } catch (error) {
-    console.error(error);
-    alert("Failed To Add Skill");
-  }
-};
+  };
 
-const handleExperienceChange = (
-  e: React.ChangeEvent<
-    HTMLInputElement | HTMLTextAreaElement
-  >
-) => {
-  setExperienceData({
-    ...experienceData,
-    [e.target.name]: e.target.value,
-  });
-};
+  const handleSkillSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-const handleExperienceSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
+    try {
+      await api.post("/skills", skillData, authConfig);
+      alert("Skill added successfully");
 
-  try {
-    const token = localStorage.getItem("token");
+      setSkillData({
+        name: "",
+        category: "",
+      });
+      await fetchSkills();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add skill");
+    }
+  };
 
-    await api.post(
-      "/experience",
-      experienceData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    alert("Experience Added Successfully");
-
+  const handleExperienceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setExperienceData({
-      company: "",
-      role: "",
-      duration: "",
-      description: "",
+      ...experienceData,
+      [e.target.name]: e.target.value,
     });
-  } catch (error) {
-    console.error(error);
-    alert("Failed To Add Experience");
-  }
-};
+  };
 
-const handleEducationChange = (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  setEducationData({
-    ...educationData,
-    [e.target.name]: e.target.value,
-  });
-};
+  const handleExperienceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-const handleEducationSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
+    try {
+      await api.post("/experience", experienceData, authConfig);
+      alert("Experience added successfully");
 
-  try {
-    const token = localStorage.getItem("token");
+      setExperienceData({
+        company: "",
+        role: "",
+        duration: "",
+        description: "",
+      });
+      await fetchExperience();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add experience");
+    }
+  };
 
-    await api.post(
-      "/education",
-      educationData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    alert("Education Added Successfully");
-
+  const handleEducationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEducationData({
-      degree: "",
-      college: "",
-      year: "",
-      cgpa: "",
+      ...educationData,
+      [e.target.name]: e.target.value,
     });
-  } catch (error) {
-    console.error(error);
-    alert("Failed To Add Education");
-  }
-};
+  };
 
-const handleCertificateChange = (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  setCertificateData({
-    ...certificateData,
-    [e.target.name]: e.target.value,
-  });
-};
+  const handleEducationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-const handleCertificateSubmit = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
+    try {
+      await api.post("/education", educationData, authConfig);
+      alert("Education added successfully");
 
-  try {
-    const token = localStorage.getItem("token");
+      setEducationData({
+        degree: "",
+        college: "",
+        year: "",
+        cgpa: "",
+      });
+      await fetchEducation();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add education");
+    }
+  };
 
-    await api.post(
-      "/certifications",
-      certificateData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    alert("Certificate Added Successfully");
-
+  const handleCertificateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCertificateData({
-      title: "",
-      image: "",
+      ...certificateData,
+      [e.target.name]: e.target.value,
     });
-  } catch (error) {
-    console.error(error);
-    alert("Failed To Add Certificate");
-  }
-};
+  };
 
-const handleResumeUpload = async (
-  e: React.FormEvent
-) => {
-  e.preventDefault();
+  const handleCertificateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (!resume) return;
+    try {
+      await api.post("/certifications", certificateData, authConfig);
+      alert("Certificate added successfully");
 
-  const formData = new FormData();
-  formData.append("resume", resume);
+      setCertificateData({
+        title: "",
+        image: "",
+      });
+      await fetchCertificates();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add certificate");
+    }
+  };
 
-  try {
-    const token = localStorage.getItem("token");
+  const handleResumeUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    await api.post("/resume", formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    if (!resume) return;
 
-    alert("Resume Uploaded Successfully");
-  } catch (error) {
-    console.error(error);
-    alert("Resume Upload Failed");
-  }
-};
+    const formData = new FormData();
+    formData.append("resume", resume);
 
-const handleDeleteProject = async (id: string) => {  try {    const token = localStorage.getItem("token");    await api.delete(`/projects/${id}`, {      headers: {        Authorization: `Bearer ${token}`,      },    });    setProjects(      projects.filter(        (project) => project._id !== id      )    );    alert("Project Deleted");  } catch (error) {    console.error(error);    alert("Failed To Delete Project");  }};
+    try {
+      await api.post("/resume/upload", formData, {
+        ...authConfig,
+        headers: {
+          ...authConfig.headers,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Resume uploaded successfully");
+      setResume(null);
+      await fetchResume();
+    } catch (error) {
+      console.error(error);
+      alert("Resume upload failed");
+    }
+  };
+
+  const deleteItem = async (
+    endpoint: string,
+    id: string,
+    onSuccess: () => Promise<void>,
+    successMessage: string
+  ) => {
+    try {
+      await api.delete(`${endpoint}/${id}`, authConfig);
+      alert(successMessage);
+      await onSuccess();
+    } catch (error) {
+      console.error(error);
+      alert("Delete failed");
+    }
+  };
+
+  const deleteResume = async () => {
+    try {
+      await api.delete("/resume", authConfig);
+      alert("Resume deleted");
+      await fetchResume();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete resume");
+    }
+  };
+
+  const sectionTitle =
+    activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="flex">
-
-        {/* Sidebar */}
-        <div className="w-72 min-h-screen bg-white shadow-lg p-6">
-
-          <h1 className="text-2xl font-bold text-violet-600 mb-8">
-            Admin Panel
+    <div className="min-h-screen bg-[linear-gradient(145deg,#f8f7fd_0%,#f1f4fb_45%,#f8f3fb_100%)]">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-white/70">
+        <div className="section-shell h-16 flex items-center justify-between">
+          <button
+            type="button"
+            className="lg:hidden w-10 h-10 rounded-full border border-slate-200 bg-white text-slate-700 flex items-center justify-center"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <FaBars />
+          </button>
+          <h1 className="display text-xl font-bold text-[var(--text)]">
+            Admin Dashboard
           </h1>
-
-          <div className="space-y-3">
-
-            <button
-              onClick={() => setActiveTab("profile")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaUser className="inline mr-3" />
-              Profile
-            </button>
-
-            <button
-              onClick={() => setActiveTab("projects")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaProjectDiagram className="inline mr-3" />
-              Projects
-            </button>
-
-            <button
-              onClick={() => setActiveTab("skills")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaTools className="inline mr-3" />
-              Skills
-            </button>
-
-            <button
-              onClick={() => setActiveTab("experience")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaBriefcase className="inline mr-3" />
-              Experience
-            </button>
-
-            <button
-              onClick={() => setActiveTab("education")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaGraduationCap className="inline mr-3" />
-              Education
-            </button>
-
-            <button
-              onClick={() => setActiveTab("certifications")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaCertificate className="inline mr-3" />
-              Certifications
-            </button>
-
-            <button
-              onClick={() => setActiveTab("resume")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaFilePdf className="inline mr-3" />
-              Resume
-            </button>
-
-            <button
-              onClick={() => setActiveTab("messages")}
-              className="w-full text-left p-3 rounded-xl hover:bg-violet-100"
-            >
-              <FaEnvelope className="inline mr-3" />
-              Messages
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="w-full text-left p-3 rounded-xl bg-red-500 text-white mt-8 hover:bg-red-600"
-            >
-              <FaSignOutAlt className="inline mr-3" />
-              Logout
-            </button>
-
-          </div>
+          <button
+            onClick={handleLogout}
+            className="secondary-btn px-4 py-2 text-sm"
+          >
+            <FaSignOutAlt />
+            Logout
+          </button>
         </div>
+      </header>
 
-        {/* Content Area */}
-        <div className="flex-1 p-10">
+      <div className="section-shell py-6 grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
+        <aside
+          className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-[280px] lg:w-auto bg-white/92 backdrop-blur-xl border border-white/80 rounded-none lg:rounded-2xl shadow-[0_18px_45px_rgba(31,42,68,0.12)] p-5 transition-transform duration-300 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
+        >
+          <div className="flex items-center justify-between lg:justify-start mb-5">
+            <h2 className="display text-2xl text-[var(--primary)] font-bold">Admin Panel</h2>
+            <button
+              type="button"
+              className="lg:hidden w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaTimes />
+            </button>
+          </div>
 
-          <h2 className="text-4xl font-bold text-slate-800 mb-8">
-            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+          <div className="space-y-2">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => {
+                    setActiveTab(tab.key);
+                    setSidebarOpen(false);
+                  }}
+                  className={`w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 font-semibold transition ${
+                    isActive
+                      ? "bg-[var(--soft-primary)] text-[var(--primary)]"
+                      : "text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="primary-btn w-full mt-6"
+          >
+            <FaSignOutAlt />
+            Logout
+          </button>
+        </aside>
+
+        {sidebarOpen && (
+          <button
+            type="button"
+            className="fixed inset-0 bg-slate-900/25 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          />
+        )}
+
+        <main className="glass-card p-5 sm:p-7 lg:p-8 min-h-[72vh] z-10">
+          <h2 className="display text-3xl font-extrabold text-[var(--text)] mb-6">
+            {sectionTitle}
           </h2>
 
+          {loading && (
+            <div className="mb-5 text-[var(--muted)]">Loading...</div>
+          )}
+
           {activeTab === "profile" && (
-  <div className="bg-white p-6 rounded-2xl shadow-lg">
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Profile Management</h3>
+              <form onSubmit={handleProfileSubmit} className="grid md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="profileImage"
+                  value={profileData.profileImage}
+                  onChange={handleProfileChange}
+                  placeholder="/uploads/images/profile.jpg"
+                  className="input-shell md:col-span-2"
+                />
+                <input type="text" name="name" value={profileData.name} onChange={handleProfileChange} placeholder="Full Name" className="input-shell" />
+                <input type="text" name="title" value={profileData.title} onChange={handleProfileChange} placeholder="Title" className="input-shell" />
+                <input type="email" name="email" value={profileData.email} onChange={handleProfileChange} placeholder="Email" className="input-shell" />
+                <input type="text" name="phone" value={profileData.phone} onChange={handleProfileChange} placeholder="Phone" className="input-shell" />
+                <input type="text" name="location" value={profileData.location} onChange={handleProfileChange} placeholder="Location" className="input-shell" />
+                <input type="text" name="github" value={profileData.github} onChange={handleProfileChange} placeholder="GitHub URL" className="input-shell" />
+                <input type="text" name="linkedin" value={profileData.linkedin} onChange={handleProfileChange} placeholder="LinkedIn URL" className="input-shell md:col-span-2" />
+                <textarea rows={5} name="about" value={profileData.about} onChange={handleProfileChange} placeholder="About Me" className="input-shell md:col-span-2 resize-none" />
+                <button type="submit" className="primary-btn md:col-span-2">Update Profile</button>
+              </form>
+            </div>
+          )}
 
-    <h3 className="text-2xl font-semibold mb-6">
-      Profile Management
-    </h3>
-
-    <form
-      onSubmit={handleProfileSubmit}
-      className="grid md:grid-cols-2 gap-5"
-    >
-
-      <input
-        type="text"
-        name="name"
-        value={profileData.name}
-        onChange={handleProfileChange}
-        placeholder="Full Name"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="title"
-        value={profileData.title}
-        onChange={handleProfileChange}
-        placeholder="Title"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="email"
-        name="email"
-        value={profileData.email}
-        onChange={handleProfileChange}
-        placeholder="Email"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="phone"
-        value={profileData.phone}
-        onChange={handleProfileChange}
-        placeholder="Phone"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="location"
-        value={profileData.location}
-        onChange={handleProfileChange}
-        placeholder="Location"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="github"
-        value={profileData.github}
-        onChange={handleProfileChange}
-        placeholder="GitHub URL"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="linkedin"
-        value={profileData.linkedin}
-        onChange={handleProfileChange}
-        placeholder="LinkedIn URL"
-        className="p-4 border rounded-xl md:col-span-2"
-      />
-
-      <textarea
-        rows={5}
-        name="about"
-        value={profileData.about}
-        onChange={handleProfileChange}
-        placeholder="About Me"
-        className="p-4 border rounded-xl md:col-span-2"
-      />
-
-      <button
-        type="submit"
-        className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
-      >
-        Update Profile
-      </button>
-
-    </form>
-
-  </div>
-)}
           {activeTab === "projects" && (
-  <div className="bg-white p-6 rounded-2xl shadow-lg">
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Add Project</h3>
+              <form onSubmit={handleProjectSubmit} className="grid md:grid-cols-2 gap-4">
+                <input type="text" name="title" value={projectData.title} onChange={handleProjectChange} placeholder="Project Title" className="input-shell" required />
+                <input type="text" name="tech" value={projectData.tech} onChange={handleProjectChange} placeholder="React, Node.js, MongoDB" className="input-shell" required />
+                <input type="text" name="githubLink" value={projectData.githubLink} onChange={handleProjectChange} placeholder="GitHub Link" className="input-shell" required />
+                <input type="text" name="projectUrl" value={projectData.projectUrl} onChange={handleProjectChange} placeholder="Live Demo URL" className="input-shell" />
+                <input type="text" name="image" value={projectData.image} onChange={handleProjectChange} placeholder="/uploads/images/project.jpg" className="input-shell md:col-span-2" required />
+                <textarea rows={5} name="description" value={projectData.description} onChange={handleProjectChange} placeholder="Project Description" className="input-shell md:col-span-2 resize-none" required />
+                <button type="submit" className="primary-btn md:col-span-2">Add Project</button>
+              </form>
 
-    <h3 className="text-2xl font-semibold mb-6">
-      Add Project
-    </h3>
-
-    <form
-      onSubmit={handleProjectSubmit}
-      className="grid md:grid-cols-2 gap-5"
-    >
-
-      <input
-        type="text"
-        name="title"
-        value={projectData.title}
-        onChange={handleProjectChange}
-        placeholder="Project Title"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="tech"
-        value={projectData.tech}
-        onChange={handleProjectChange}
-        placeholder="React, Node.js, MongoDB"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="githubLink"
-        value={projectData.githubLink}
-        onChange={handleProjectChange}
-        placeholder="GitHub Link"
-        className="p-4 border rounded-xl"
-      />
-
-      <input
-        type="text"
-        name="projectUrl"
-        value={projectData.projectUrl}
-        onChange={handleProjectChange}
-        placeholder="Live Demo URL"
-        className="p-4 border rounded-xl"
-      />
-
-      <textarea
-        rows={5}
-        name="description"
-        value={projectData.description}
-        onChange={handleProjectChange}
-        placeholder="Project Description"
-        className="p-4 border rounded-xl md:col-span-2"
-      />
-
-      <button
-        type="submit"
-        className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
-      >
-        Add Project
-      </button>
-
-    </form>
-    <form
-  onSubmit={handleProjectSubmit}
-  className="grid md:grid-cols-2 gap-5"
->
-  ...
-</form>
-
-<div className="mt-10">
-  <h3 className="text-xl font-semibold mb-4">
-    Existing Projects
-  </h3>
-
-  {projects.map((project) => (
-    
-    <div
-      key={project._id}
-      className="border rounded-xl p-4 mb-4"
-    >
-      <h4 className="font-bold">
-        {project.title}
-      </h4>
-
-      <p>{project.description}</p>
-      <button  onClick={() => handleDeleteProject(project._id)}  className="mt-3 bg-red-500 text-white px-4 py-2 rounded-lg">  Delete</button>
-      
-    </div>
-  ))}
-</div>
-
-  </div>
-)}
+              <div className="mt-10">
+                <h4 className="display text-xl font-bold mb-4">Existing Projects</h4>
+                <div className="space-y-3">
+                  {projects.map((project) => (
+                    <div key={project._id} className="elevated-card p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h5 className="font-bold text-lg text-[var(--text)]">{project.title}</h5>
+                          <p className="text-[var(--muted)] mt-1">{project.description}</p>
+                        </div>
+                        <button
+                          className="secondary-btn text-sm"
+                          onClick={() => deleteItem("/projects", project._id, fetchProjects, "Project deleted")}
+                        >
+                          <FaTrash />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeTab === "skills" && (
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-2xl font-semibold mb-6">
-                Add Skill
-              </h3>
-              <form
-                onSubmit={handleSkillSubmit}
-                className="grid md:grid-cols-2 gap-5"
-              >
-                <input
-                  type="text"
-                  name="name"
-                  value={skillData.name}
-                  onChange={handleSkillChange}
-                  placeholder="Skill Name"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="category"
-                  value={skillData.category}
-                  onChange={handleSkillChange}
-                  placeholder="Frontend / Backend / Database"
-                  className="p-4 border rounded-xl"
-                />
-                <button
-                  type="submit"
-                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
-                >
-                  Add Skill
-                </button>
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Add Skill</h3>
+              <form onSubmit={handleSkillSubmit} className="grid md:grid-cols-2 gap-4">
+                <input type="text" name="name" value={skillData.name} onChange={handleSkillChange} placeholder="Skill Name" className="input-shell" required />
+                <input type="text" name="category" value={skillData.category} onChange={handleSkillChange} placeholder="Frontend / Backend / Database" className="input-shell" required />
+                <button type="submit" className="primary-btn md:col-span-2">Add Skill</button>
               </form>
-              <div className="mt-10">
-                <h3 className="text-xl font-semibold mb-4">
-                  Existing Skills
-                </h3>
+
+              <div className="mt-10 space-y-3">
+                <h4 className="display text-xl font-bold">Existing Skills</h4>
                 {skills.map((skill) => (
-                  <div
-                    key={skill._id}
-                    className="border rounded-xl p-4 mb-4"
-                  >
-                    <h4 className="font-bold">
-                      {skill.name}
-                    </h4>
-                    <p>{skill.category}</p>
+                  <div key={skill._id} className="elevated-card p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h5 className="font-bold text-[var(--text)]">{skill.name}</h5>
+                      <p className="text-[var(--muted)] text-sm">{skill.category}</p>
+                    </div>
+                    <button
+                      className="secondary-btn text-sm"
+                      onClick={() => deleteItem("/skills", skill._id, fetchSkills, "Skill deleted")}
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
@@ -798,72 +666,35 @@ const handleDeleteProject = async (id: string) => {  try {    const token = loca
           )}
 
           {activeTab === "experience" && (
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-2xl font-semibold mb-6">
-                Add Experience
-              </h3>
-              <form
-                onSubmit={handleExperienceSubmit}
-                className="grid md:grid-cols-2 gap-5"
-              >
-                <input
-                  type="text"
-                  name="company"
-                  value={experienceData.company}
-                  onChange={handleExperienceChange}
-                  placeholder="Company"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="role"
-                  value={experienceData.role}
-                  onChange={handleExperienceChange}
-                  placeholder="Role"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="duration"
-                  value={experienceData.duration}
-                  onChange={handleExperienceChange}
-                  placeholder="Duration"
-                  className="p-4 border rounded-xl md:col-span-2"
-                />
-                <textarea
-                  rows={4}
-                  name="description"
-                  value={experienceData.description}
-                  onChange={handleExperienceChange}
-                  placeholder="Description"
-                  className="p-4 border rounded-xl md:col-span-2"
-                />
-                <button
-                  type="submit"
-                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
-                >
-                  Add Experience
-                </button>
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Add Experience</h3>
+              <form onSubmit={handleExperienceSubmit} className="grid md:grid-cols-2 gap-4">
+                <input type="text" name="company" value={experienceData.company} onChange={handleExperienceChange} placeholder="Company" className="input-shell" required />
+                <input type="text" name="role" value={experienceData.role} onChange={handleExperienceChange} placeholder="Role" className="input-shell" required />
+                <input type="text" name="duration" value={experienceData.duration} onChange={handleExperienceChange} placeholder="Duration" className="input-shell md:col-span-2" required />
+                <textarea rows={4} name="description" value={experienceData.description} onChange={handleExperienceChange} placeholder="Description" className="input-shell md:col-span-2 resize-none" required />
+                <button type="submit" className="primary-btn md:col-span-2">Add Experience</button>
               </form>
-              <div className="mt-10">
-                <h3 className="text-xl font-semibold mb-4">
-                  Existing Experience
-                </h3>
-                {experiences.map((experience) => (
-                  <div
-                    key={experience._id}
-                    className="border rounded-xl p-4 mb-4"
-                  >
-                    <h4 className="font-bold">
-                      {experience.role}
-                    </h4>
-                    <p>{experience.company}</p>
-                    <p className="text-sm text-gray-500">
-                      {experience.duration}
-                    </p>
-                    <p className="mt-2">
-                      {experience.description}
-                    </p>
+
+              <div className="mt-10 space-y-3">
+                <h4 className="display text-xl font-bold">Existing Experience</h4>
+                {experiences.map((item) => (
+                  <div key={item._id} className="elevated-card p-4">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div>
+                        <h5 className="font-bold text-[var(--text)]">{item.role}</h5>
+                        <p className="text-[var(--primary)] font-semibold">{item.company}</p>
+                      </div>
+                      <span className="soft-chip">{item.duration}</span>
+                    </div>
+                    <p className="mt-2 text-[var(--muted)]">{item.description}</p>
+                    <button
+                      className="secondary-btn mt-3 text-sm"
+                      onClick={() => deleteItem("/experience", item._id, fetchExperience, "Experience deleted")}
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
@@ -871,68 +702,32 @@ const handleDeleteProject = async (id: string) => {  try {    const token = loca
           )}
 
           {activeTab === "education" && (
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-2xl font-semibold mb-6">
-                Add Education
-              </h3>
-              <form
-                onSubmit={handleEducationSubmit}
-                className="grid md:grid-cols-2 gap-5"
-              >
-                <input
-                  type="text"
-                  name="degree"
-                  value={educationData.degree}
-                  onChange={handleEducationChange}
-                  placeholder="Degree"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="college"
-                  value={educationData.college}
-                  onChange={handleEducationChange}
-                  placeholder="College"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="year"
-                  value={educationData.year}
-                  onChange={handleEducationChange}
-                  placeholder="Year"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="cgpa"
-                  value={educationData.cgpa}
-                  onChange={handleEducationChange}
-                  placeholder="CGPA"
-                  className="p-4 border rounded-xl"
-                />
-                <button
-                  type="submit"
-                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 md:col-span-2"
-                >
-                  Add Education
-                </button>
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Add Education</h3>
+              <form onSubmit={handleEducationSubmit} className="grid md:grid-cols-2 gap-4">
+                <input type="text" name="degree" value={educationData.degree} onChange={handleEducationChange} placeholder="Degree" className="input-shell" required />
+                <input type="text" name="college" value={educationData.college} onChange={handleEducationChange} placeholder="College" className="input-shell" required />
+                <input type="text" name="year" value={educationData.year} onChange={handleEducationChange} placeholder="Year" className="input-shell" required />
+                <input type="text" name="cgpa" value={educationData.cgpa} onChange={handleEducationChange} placeholder="CGPA" className="input-shell" required />
+                <button type="submit" className="primary-btn md:col-span-2">Add Education</button>
               </form>
-              <div className="mt-10">
-                <h3 className="text-xl font-semibold mb-4">
-                  Existing Education
-                </h3>
+
+              <div className="mt-10 space-y-3">
+                <h4 className="display text-xl font-bold">Existing Education</h4>
                 {education.map((item) => (
-                  <div
-                    key={item._id}
-                    className="border rounded-xl p-4 mb-4"
-                  >
-                    <h4 className="font-bold">
-                      {item.degree}
-                    </h4>
-                    <p>{item.college}</p>
-                    <p>{item.year}</p>
-                    <p>CGPA: {item.cgpa}</p>
+                  <div key={item._id} className="elevated-card p-4 flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <h5 className="font-bold text-[var(--text)]">{item.degree}</h5>
+                      <p className="text-[var(--muted)]">{item.college}</p>
+                      <p className="text-[var(--muted)] text-sm">{item.year} | CGPA: {item.cgpa}</p>
+                    </div>
+                    <button
+                      className="secondary-btn text-sm"
+                      onClick={() => deleteItem("/education", item._id, fetchEducation, "Education deleted")}
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
@@ -940,50 +735,36 @@ const handleDeleteProject = async (id: string) => {  try {    const token = loca
           )}
 
           {activeTab === "certifications" && (
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-2xl font-semibold mb-6">
-                Add Certificate
-              </h3>
-              <form
-                onSubmit={handleCertificateSubmit}
-                className="grid gap-5"
-              >
-                <input
-                  type="text"
-                  name="title"
-                  value={certificateData.title}
-                  onChange={handleCertificateChange}
-                  placeholder="Certificate Title"
-                  className="p-4 border rounded-xl"
-                />
-                <input
-                  type="text"
-                  name="image"
-                  value={certificateData.image}
-                  onChange={handleCertificateChange}
-                  placeholder="/uploads/images/certificate.jpg"
-                  className="p-4 border rounded-xl"
-                />
-                <button
-                  type="submit"
-                  className="bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700"
-                >
-                  Add Certificate
-                </button>
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Add Certificate</h3>
+              <form onSubmit={handleCertificateSubmit} className="grid gap-4">
+                <input type="text" name="title" value={certificateData.title} onChange={handleCertificateChange} placeholder="Certificate Title" className="input-shell" required />
+                <input type="text" name="image" value={certificateData.image} onChange={handleCertificateChange} placeholder="/uploads/images/certificate.jpg" className="input-shell" required />
+                <button type="submit" className="primary-btn">Add Certificate</button>
               </form>
-              <div className="mt-10">
-                <h3 className="text-xl font-semibold mb-4">
-                  Existing Certificates
-                </h3>
+
+              <div className="mt-10 space-y-3">
+                <h4 className="display text-xl font-bold">Existing Certificates</h4>
                 {certificates.map((certificate) => (
-                  <div
-                    key={certificate._id}
-                    className="border rounded-xl p-4 mb-4"
-                  >
-                    <h4 className="font-bold">
-                      {certificate.title}
-                    </h4>
-                    <p>{certificate.image}</p>
+                  <div key={certificate._id} className="elevated-card p-4 flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <h5 className="font-bold text-[var(--text)]">{certificate.title}</h5>
+                      <p className="text-[var(--muted)] text-sm break-all">{certificate.image}</p>
+                    </div>
+                    <button
+                      className="secondary-btn text-sm"
+                      onClick={() =>
+                        deleteItem(
+                          "/certifications",
+                          certificate._id,
+                          fetchCertificates,
+                          "Certificate deleted"
+                        )
+                      }
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
@@ -991,81 +772,86 @@ const handleDeleteProject = async (id: string) => {  try {    const token = loca
           )}
 
           {activeTab === "resume" && (
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-2xl font-semibold mb-6">
-                Resume Management
-              </h3>
-              <form
-                onSubmit={handleResumeUpload}
-                className="space-y-5"
-              >
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Resume Management</h3>
+              <form onSubmit={handleResumeUpload} className="space-y-4">
                 <input
                   type="file"
                   accept=".pdf"
-                  onChange={(e) =>
-                    setResume(
-                      e.target.files
-                        ? e.target.files[0]
-                        : null
-                    )
-                  }
-                  className="p-4 border rounded-xl w-full"
+                  onChange={(e) => setResume(e.target.files?.[0] || null)}
+                  className="input-shell"
                 />
-                <button
-                  type="submit"
-                  className="bg-violet-600 text-white px-8 py-3 rounded-xl"
-                >
+                <button type="submit" className="primary-btn">
                   Upload Resume
                 </button>
               </form>
+
+              <div className="mt-8">
+                {resumeInfo?.fileUrl ? (
+                  <div className="elevated-card p-4 flex items-center justify-between gap-4 flex-wrap">
+                    <a
+                      href={`${ASSET_BASE_URL}${resumeInfo.fileUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-[var(--primary)]"
+                    >
+                      {resumeInfo.fileName || "Current resume"}
+                    </a>
+                    <button onClick={deleteResume} className="secondary-btn text-sm">
+                      <FaTrash />
+                      Delete Resume
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[var(--muted)]">No resume uploaded yet.</p>
+                )}
+              </div>
             </div>
           )}
 
           {activeTab === "messages" && (
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div>
+              <h3 className="display text-2xl font-bold mb-5 text-[var(--text)]">Contact Messages</h3>
 
-              <h3 className="text-2xl font-semibold mb-6">
-                Contact Messages
-              </h3>
-
-              <div className="overflow-x-auto">
-
-                <table className="w-full">
-
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-3">Name</th>
-                      <th className="text-left p-3">Email</th>
-                      <th className="text-left p-3">Phone</th>
-                      <th className="text-left p-3">Message</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-
-                    {messages.map((msg) => (
-                      <tr
-                        key={msg._id}
-                        className="border-b"
-                      >
-                        <td className="p-3">{msg.name}</td>
-                        <td className="p-3">{msg.email}</td>
-                        <td className="p-3">{msg.phone}</td>
-                        <td className="p-3">{msg.message}</td>
+              {messages.length === 0 ? (
+                <p className="text-[var(--muted)]">No messages available.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[760px]">
+                    <thead>
+                      <tr className="text-left border-b border-slate-200">
+                        <th className="py-3 px-3">Name</th>
+                        <th className="py-3 px-3">Email</th>
+                        <th className="py-3 px-3">Phone</th>
+                        <th className="py-3 px-3">Message</th>
+                        <th className="py-3 px-3">Action</th>
                       </tr>
-                    ))}
-
-                  </tbody>
-
-                </table>
-
-              </div>
-
+                    </thead>
+                    <tbody>
+                      {messages.map((msg) => (
+                        <tr key={msg._id} className="border-b border-slate-100 align-top">
+                          <td className="py-3 px-3 font-semibold text-[var(--text)]">{msg.name}</td>
+                          <td className="py-3 px-3 text-[var(--muted)]">{msg.email}</td>
+                          <td className="py-3 px-3 text-[var(--muted)]">{msg.phone}</td>
+                          <td className="py-3 px-3 text-[var(--muted)]">{msg.message}</td>
+                          <td className="py-3 px-3">
+                            <button
+                              className="secondary-btn text-sm"
+                              onClick={() => deleteItem("/contact", msg._id, fetchMessages, "Message deleted")}
+                            >
+                              <FaTrash />
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
-
-        </div>
-
+        </main>
       </div>
     </div>
   );

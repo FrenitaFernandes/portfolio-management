@@ -31,33 +31,27 @@ function Experience() {
   }
 
   return (
-    <section id="experience" className="py-28 px-6">
-      <div className="max-w-7xl mx-auto">
-
-        <div className="text-center mb-20">
-
-          <span className="text-violet-600 uppercase tracking-widest font-semibold">
+    <section id="experience" className="section-block">
+      <div className="section-shell">
+        <div className="text-center mb-14">
+          <span className="section-tag">
             Career Journey
           </span>
 
-          <h2 className="text-4xl md:text-5xl font-bold mt-3 text-slate-900">
+          <h2 className="section-title display">
             Experience
           </h2>
 
-          <p className="mt-5 max-w-2xl mx-auto text-slate-600 leading-8">
+          <p className="section-subtitle">
             My internships and professional experience that have
             helped me build strong technical and problem-solving skills.
           </p>
-
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-
-          {/* Timeline Line */}
-          <div className="absolute left-5 top-0 bottom-0 w-1 bg-violet-200 rounded-full"></div>
+          <div className="absolute left-4 top-2 bottom-4 w-[2px] bg-gradient-to-b from-[#5b57d7]/55 to-[#5b57d7]/5 rounded-full" />
 
           {experiences.map((item, index) => (
-
             <motion.div
               key={item._id}
               initial={{ opacity: 0, x: -40 }}
@@ -67,56 +61,34 @@ function Experience() {
                 duration: 0.5,
                 delay: index * 0.15,
               }}
-              className="relative pl-16 pb-12"
+              className="relative pl-12 sm:pl-16 pb-8"
             >
+              <div className="absolute left-0 top-6 w-8 h-8 rounded-full bg-[var(--primary)] border-4 border-white shadow-lg" />
 
-              {/* Timeline Dot */}
-              <div className="absolute left-0 top-2 w-10 h-10 rounded-full bg-violet-600 border-4 border-white shadow-lg"></div>
-
-              {/* Card */}
-              <div
-                className="
-                  bg-white
-                  rounded-3xl
-                  shadow-xl
-                  border
-                  border-slate-100
-                  p-8
-                "
-              >
-
+              <div className="elevated-card p-6 sm:p-8">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-
                   <div>
-
-                    <h3 className="text-2xl font-bold text-slate-900">
+                    <h3 className="display text-2xl font-bold text-[var(--text)]">
                       {item.role}
                     </h3>
 
-                    <p className="text-violet-600 font-semibold mt-2">
+                    <p className="text-[var(--primary)] font-bold mt-2">
                       {item.company}
                     </p>
-
                   </div>
 
-                  <span className="mt-4 md:mt-0 text-sm bg-violet-100 text-violet-700 px-4 py-2 rounded-full font-medium">
+                  <span className="mt-4 md:mt-0 soft-chip">
                     {item.duration}
                   </span>
-
                 </div>
 
-                <p className="mt-6 text-slate-600 leading-8">
+                <p className="mt-5 text-[var(--muted)] leading-8">
                   {item.description}
                 </p>
-
               </div>
-
             </motion.div>
-
           ))}
-
         </div>
-
       </div>
     </section>
   );

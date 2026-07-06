@@ -1,124 +1,134 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import api, { ASSET_BASE_URL } from "../services/api";
+
 function About() {
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/profile");
-
-        console.log("PROFILE RESPONSE =", response.data);
-
         setProfile(response.data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProfile();
   }, []);
 
-  if (!profile) {
+  if (loading) {
     return (
-      <section id="about" className="py-24 text-center">
-        Loading...
+      <section id="about" className="section-block">
+        <div className="section-shell">
+          <div className="glass-card p-8 text-center text-[var(--muted)]">
+            Loading profile...
+          </div>
+        </div>
       </section>
     );
   }
 
+  if (!profile) return null;
+
+  const profileImage = profile?.profileImage
+    ? `${ASSET_BASE_URL}${profile.profileImage}`
+    : null;
+
   return (
-    <section id="about" className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
+    <section id="about" className="section-block">
+      <div className="section-shell">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-bold text-center text-slate-800">
-            About Me
-          </h2>
+          <div className="text-center mb-12">
+            <span className="section-tag">About</span>
+            <h2 className="section-title display">About Me</h2>
+          </div>
 
-          <div className="mt-12 bg-white/50 backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-lg border border-white/40">
-            <div className="grid lg:grid-cols-2 gap-10 items-center">
-              
-              {/* Profile Image */}
-              <div className="flex justify-center">
-                <img
-                  src={`${ASSET_BASE_URL}${profile.profileImage}`}
-                  alt={profile.name}
-                  className="w-64 h-64 rounded-3xl object-cover shadow-xl"
-                />
+          <div className="glass-card p-6 md:p-10 lg:p-12">
+            <div className="grid lg:grid-cols-[0.82fr_1.18fr] gap-10 lg:gap-14 items-center">
+              <div className="relative">
+                <div className="absolute inset-0 -z-10 rounded-[2.1rem] bg-gradient-to-br from-[#d8d6ff]/55 to-[#d9eef3]/40 blur-xl" />
+
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt={profile.name}
+                    className="w-full max-w-[350px] mx-auto aspect-[4/5] rounded-[2rem] object-cover border border-white/75 shadow-[0_18px_40px_rgba(32,42,75,0.12)]"
+                  />
+                ) : (
+                  <div className="w-full max-w-[350px] mx-auto aspect-[4/5] rounded-[2rem] bg-white/70 border border-white/75 shadow-[0_18px_40px_rgba(32,42,75,0.12)] flex items-center justify-center text-[var(--muted)] font-semibold">
+                    Profile image not added yet
+                  </div>
+                )}
               </div>
 
-              {/* Profile Details */}
               <div>
-                <h3 className="text-3xl font-semibold text-slate-800">
+                <h3 className="display text-4xl font-extrabold text-[var(--text)]">
                   {profile.name}
                 </h3>
 
-                <p className="mt-2 text-violet-600 font-medium">
+                <p className="mt-3 text-[var(--primary)] font-bold text-lg">
                   {profile.title}
                 </p>
 
-                <p className="mt-6 text-slate-600 leading-8">
+                <p className="mt-6 text-[var(--muted)] leading-8 text-lg">
                   {profile.about}
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                  
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-8">
                   <div>
-                    <span className="font-semibold">Email:</span>
-                    <p className="text-slate-600">
-                      {profile.email}
-                    </p>
+                    <span className="text-sm font-semibold text-slate-500">Email</span>
+                    <p className="text-[var(--text)] font-semibold break-all">{profile.email}</p>
                   </div>
 
                   <div>
-                    <span className="font-semibold">Phone:</span>
-                    <p className="text-slate-600">
-                      {profile.phone}
-                    </p>
+                    <span className="text-sm font-semibold text-slate-500">Phone</span>
+                    <p className="text-[var(--text)] font-semibold">{profile.phone}</p>
                   </div>
 
                   <div>
-                    <span className="font-semibold">Location:</span>
-                    <p className="text-slate-600">
-                      {profile.location}
-                    </p>
+                    <span className="text-sm font-semibold text-slate-500">Location</span>
+                    <p className="text-[var(--text)] font-semibold">{profile.location}</p>
                   </div>
 
                   <div>
-                    <span className="font-semibold">Role:</span>
-                    <p className="text-slate-600">
-                      {profile.title}
-                    </p>
+                    <span className="text-sm font-semibold text-slate-500">Role</span>
+                    <p className="text-[var(--text)] font-semibold">{profile.title}</p>
                   </div>
-
                 </div>
 
                 <div className="flex gap-4 mt-8">
-                  <a
-                    href={profile.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition"
-                  >
-                    LinkedIn
-                  </a>
+                  {profile.linkedin && (
+                    <a
+                      href={profile.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="secondary-btn"
+                    >
+                      LinkedIn
+                    </a>
+                  )}
 
-                  <a
-                    href={profile.github}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-white hover:bg-gray-900 transition"
-                  >
-                    GitHub
-                  </a>
+                  {profile.github && (
+                    <a
+                      href={profile.github}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="primary-btn"
+                    >
+                      GitHub
+                    </a>
+                  )}
                 </div>
-
               </div>
             </div>
           </div>

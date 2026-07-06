@@ -5,6 +5,7 @@ import api, { ASSET_BASE_URL } from "../services/api";
 
 function Resume() {
   const [resume, setResume] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -13,82 +14,62 @@ function Resume() {
         setResume(response.data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchResume();
   }, []);
 
-  if (!resume) {
+  if (loading) {
     return (
-      <section id="resume" className="py-20 text-center">
-        Loading Resume...
+      <section id="resume" className="section-block">
+        <div className="section-shell">
+          <div className="glass-card p-8 text-center text-[var(--muted)]">
+            Loading resume...
+          </div>
+        </div>
       </section>
     );
   }
 
+  if (!resume?.fileUrl) return null;
+
   const resumeUrl = `${ASSET_BASE_URL}${resume.fileUrl}`;
 
   return (
-    <section id="resume" className="py-20 px-6">
-
-      <div className="max-w-6xl mx-auto">
-
+    <section id="resume" className="section-block">
+      <div className="section-shell">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="
-            bg-white
-            rounded-3xl
-            shadow-xl
-            border
-            border-slate-100
-            p-8
-            md:p-12
-          "
+          className="glass-card p-7 md:p-12"
         >
-
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-
-            {/* Left */}
-
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
             <div>
-
-              <span className="text-violet-600 font-semibold uppercase tracking-widest">
+              <span className="section-tag">
                 Resume
               </span>
 
-              <h2 className="text-4xl font-bold mt-3 text-slate-900">
+              <h2 className="display section-title">
                 My Resume
               </h2>
 
-              <p className="mt-5 text-slate-600 leading-8">
+              <p className="mt-5 text-[var(--muted)] leading-8 text-lg max-w-2xl">
                 Download my latest resume to know more about my
                 education, projects, technical skills and
                 professional experience.
               </p>
 
               <div className="flex flex-wrap gap-4 mt-8">
-
                 <a
                   href={resumeUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="
-                    px-7
-                    py-3
-                    rounded-xl
-                    bg-violet-600
-                    text-white
-                    font-semibold
-                    hover:bg-violet-700
-                    transition
-                    flex
-                    items-center
-                    gap-2
-                  "
+                  className="primary-btn"
                 >
                   <FaEye />
                   View Resume
@@ -97,73 +78,34 @@ function Resume() {
                 <a
                   href={resumeUrl}
                   download
-                  className="
-                    px-7
-                    py-3
-                    rounded-xl
-                    border-2
-                    border-violet-600
-                    text-violet-600
-                    font-semibold
-                    hover:bg-violet-50
-                    transition
-                    flex
-                    items-center
-                    gap-2
-                  "
+                  className="secondary-btn"
                 >
                   <FaDownload />
                   Download
                 </a>
-
               </div>
-
             </div>
 
-            {/* Right */}
-
             <div className="flex justify-center">
-
               <div
-                className="
-                  w-52
-                  h-52
-                  rounded-3xl
-                  bg-violet-50
-                  border
-                  border-violet-100
-                  flex
-                  flex-col
-                  items-center
-                  justify-center
-                "
+                className="elevated-card w-56 h-56 rounded-[1.8rem] bg-[var(--soft-primary)]/75 border-[rgba(136,145,215,0.25)] flex flex-col items-center justify-center"
               >
-
                 <FaFilePdf
-                  className="
-                    text-7xl
-                    text-violet-600
-                  "
+                  className="text-7xl text-[var(--primary)]"
                 />
 
-                <p className="mt-5 font-semibold text-slate-700">
+                <p className="mt-5 font-semibold text-[var(--text)] text-lg">
                   Latest Resume
                 </p>
 
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-[var(--muted)]">
                   PDF Document
                 </p>
-
               </div>
-
             </div>
-
           </div>
-
         </motion.div>
-
       </div>
-
     </section>
   );
 }

@@ -5,6 +5,7 @@ import api, { ASSET_BASE_URL } from "../services/api";
 
 function Projects() {
   const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -13,6 +14,8 @@ function Projects() {
         setProjects(response.data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -20,31 +23,37 @@ function Projects() {
   }, []);
 
   return (
-    <section id="projects" className="py-20 px-6">
-
-      <div className="max-w-7xl mx-auto">
-
+    <section id="projects" className="section-block">
+      <div className="section-shell">
         <div className="text-center">
-
-          <span className="uppercase tracking-widest text-violet-600 font-semibold">
+          <span className="section-tag">
             Portfolio
           </span>
 
-          <h2 className="text-4xl md:text-5xl font-bold mt-3 text-slate-900">
+          <h2 className="section-title display">
             Featured Projects
           </h2>
 
-          <p className="mt-5 max-w-2xl mx-auto text-slate-600 leading-8">
+          <p className="section-subtitle">
             Here are some projects that showcase my experience in
             full stack development and modern web technologies.
           </p>
-
         </div>
 
-        <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-8 mt-16">
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-7 mt-14">
+          {loading && (
+            <div className="md:col-span-2 xl:col-span-3 glass-card p-7 text-center text-[var(--muted)]">
+              Loading projects...
+            </div>
+          )}
+
+          {!loading && projects.length === 0 && (
+            <div className="md:col-span-2 xl:col-span-3 glass-card p-8 text-center text-[var(--muted)]">
+              No projects added yet.
+            </div>
+          )}
 
           {projects.map((project, index) => (
-
             <motion.div
               key={project._id}
               initial={{ opacity: 0, y: 40 }}
@@ -55,134 +64,72 @@ function Projects() {
                 delay: index * 0.1,
               }}
               whileHover={{
-                y: -10,
+                y: -9,
               }}
-              className="
-                bg-white
-                rounded-3xl
-                overflow-hidden
-                shadow-xl
-                border
-                border-slate-100
-                transition
-              "
+              className="elevated-card overflow-hidden"
             >
-
-              <div className="overflow-hidden">
-
-                <img
-                  src={`${ASSET_BASE_URL}${project.image}`}
-                  alt={project.title}
-                  className="
-                    w-full
-                    h-56
-                    object-cover
-                    transition
-                    duration-500
-                    hover:scale-110
-                  "
-                />
-
+              <div className="overflow-hidden h-56 bg-gradient-to-br from-[#eaebff] to-[#dff1f3]">
+                {project.image ? (
+                  <img
+                    src={`${ASSET_BASE_URL}${project.image}`}
+                    alt={project.title}
+                    className="w-full h-full object-cover transition duration-500 hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[var(--muted)] font-semibold">
+                    Project image
+                  </div>
+                )}
               </div>
 
               <div className="p-7">
-
-                <h3 className="text-2xl font-bold text-slate-900">
+                <h3 className="display text-2xl font-bold text-[var(--text)]">
                   {project.title}
                 </h3>
 
-                <p className="mt-4 text-slate-600 leading-7">
+                <p className="mt-4 text-[var(--muted)] leading-7">
                   {project.description}
                 </p>
 
                 <div className="flex flex-wrap gap-2 mt-6">
-
-                  {project.tech.map((tech: string) => (
-
+                  {(project.tech || []).map((tech: string) => (
                     <span
                       key={tech}
-                      className="
-                        px-3
-                        py-1
-                        rounded-full
-                        bg-violet-100
-                        text-violet-700
-                        text-sm
-                        font-medium
-                      "
+                      className="soft-chip"
                     >
                       {tech}
                     </span>
-
                   ))}
-
                 </div>
 
                 <div className="flex gap-3 mt-8">
-
                   <a
                     href={project.githubLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="
-                      flex-1
-                      py-3
-                      rounded-xl
-                      bg-violet-600
-                      text-white
-                      font-semibold
-                      flex
-                      items-center
-                      justify-center
-                      gap-2
-                      hover:bg-violet-700
-                      transition
-                    "
+                    className="primary-btn flex-1"
                   >
                     <FaGithub />
                     GitHub
                   </a>
 
                   {project.projectUrl && (
-
                     <a
                       href={project.projectUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="
-                        flex-1
-                        py-3
-                        rounded-xl
-                        border-2
-                        border-violet-600
-                        text-violet-600
-                        font-semibold
-                        flex
-                        items-center
-                        justify-center
-                        gap-2
-                        hover:bg-violet-50
-                        transition
-                      "
+                      className="secondary-btn flex-1"
                     >
                       <FaExternalLinkAlt />
                       Live
                     </a>
-
                   )}
-
                 </div>
-
               </div>
-
             </motion.div>
-
           ))}
-
         </div>
-
       </div>
-
     </section>
   );
 }

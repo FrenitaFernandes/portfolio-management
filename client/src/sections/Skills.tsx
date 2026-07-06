@@ -4,6 +4,7 @@ import api from "../services/api";
 
 function Skills() {
   const [skills, setSkills] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -12,6 +13,8 @@ function Skills() {
         setSkills(response.data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -19,31 +22,37 @@ function Skills() {
   }, []);
 
   return (
-    <section id="skills" className="py-20 px-6">
-
-      <div className="max-w-7xl mx-auto">
-
+    <section id="skills" className="section-block">
+      <div className="section-shell">
         <div className="text-center">
-
-          <span className="text-violet-600 uppercase tracking-widest font-semibold">
+          <span className="section-tag">
             My Expertise
           </span>
 
-          <h2 className="text-4xl md:text-5xl font-bold mt-3 text-slate-900">
+          <h2 className="section-title display">
             Technical Skills
           </h2>
 
-          <p className="mt-5 max-w-2xl mx-auto text-slate-600 leading-8">
+          <p className="section-subtitle">
             Technologies and tools that I use to build modern,
             scalable and user-friendly web applications.
           </p>
-
         </div>
 
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-16">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-14">
+          {loading && (
+            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 glass-card p-6 text-center text-[var(--muted)]">
+              Loading skills...
+            </div>
+          )}
+
+          {!loading && skills.length === 0 && (
+            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 glass-card p-8 text-center text-[var(--muted)]">
+              No skills added yet.
+            </div>
+          )}
 
           {skills.map((skill, index) => (
-
             <motion.div
               key={skill._id}
               initial={{
@@ -64,48 +73,25 @@ function Skills() {
               whileHover={{
                 y: -8,
               }}
-              className="
-                bg-white
-                rounded-2xl
-                shadow-lg
-                border
-                border-slate-100
-                p-8
-                text-center
-                transition
-              "
+              className="elevated-card p-7 text-center"
             >
-
               <div
-                className="
-                  w-16
-                  h-16
-                  rounded-full
-                  bg-violet-100
-                  text-violet-600
-                  font-bold
-                  text-xl
-                  flex
-                  items-center
-                  justify-center
-                  mx-auto
-                "
+                className="w-16 h-16 rounded-[1.1rem] bg-[var(--soft-primary)] text-[var(--primary)] font-bold text-xl flex items-center justify-center mx-auto"
               >
                 {skill.name.charAt(0)}
               </div>
 
-              <h3 className="mt-5 text-lg font-semibold text-slate-800">
+              <h3 className="mt-5 text-lg font-bold text-[var(--text)]">
                 {skill.name}
               </h3>
 
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                {skill.category}
+              </p>
             </motion.div>
-
           ))}
-
         </div>
-
       </div>
-
     </section>
   );
 }

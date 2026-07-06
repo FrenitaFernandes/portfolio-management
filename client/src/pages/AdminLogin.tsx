@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaLock } from "react-icons/fa";
 import api from "../services/api";
 
 function AdminLogin() {
@@ -60,19 +61,24 @@ function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[linear-gradient(145deg,#f8f7fd_0%,#f1f4fb_45%,#f8f3fb_100%)] flex items-center justify-center px-5 py-10">
+      <div className="w-full max-w-md glass-card p-7 sm:p-9">
+        <div className="w-14 h-14 rounded-2xl bg-[var(--soft-primary)] text-[var(--primary)] flex items-center justify-center text-xl mb-5 mx-auto">
+          <FaLock />
+        </div>
 
-      <div className="w-full max-w-md bg-white/60 backdrop-blur-lg p-8 rounded-3xl shadow-lg border border-white/40">
-
-        <h1 className="text-3xl font-bold text-center text-slate-800">
-          Admin Login
+        <h1 className="display text-3xl font-extrabold text-center text-[var(--text)]">
+          Admin Access
         </h1>
+
+        <p className="mt-3 text-center text-[var(--muted)]">
+          Sign in to manage your portfolio sections.
+        </p>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 space-y-5"
+          className="mt-8 space-y-4"
         >
-
           <input
             type="email"
             name="email"
@@ -80,7 +86,7 @@ function AdminLogin() {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full p-4 rounded-xl border border-slate-200 outline-none"
+            className="input-shell"
           />
 
           <input
@@ -90,21 +96,18 @@ function AdminLogin() {
             value={formData.password}
             onChange={handleChange}
             required
-            className="w-full p-4 rounded-xl border border-slate-200 outline-none"
+            className="input-shell"
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-xl bg-violet-600 text-white font-medium hover:bg-violet-700 transition"
+            className="primary-btn w-full py-3.5 disabled:opacity-75"
           >
             {loading ? "Logging In..." : "Login"}
           </button>
-
         </form>
-
       </div>
-
     </div>
   );
 }
