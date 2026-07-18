@@ -2,144 +2,167 @@ import { useEffect, useMemo, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 
 function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("hero");
   const [scrolled, setScrolled] = useState(false);
-  const [activeLink, setActiveLink] = useState("about");
 
   const links = useMemo(
     () => [
-      "About",
-      "Resume",
-      "Skills",
-      "Projects",
-      "Experience",
-      "Education",
-      "Certifications",
-      "Contact",
+      { id: "about", label: "About" },
+      { id: "resume", label: "Resume" },
+      { id: "skills", label: "Skills" },
+      { id: "projects", label: "Projects" },
+      { id: "experience", label: "Experience" },
+      { id: "education", label: "Education" },
+      { id: "certifications", label: "Certifications" },
+      { id: "contact", label: "Contact" },
     ],
     []
   );
 
-  const sectionIds = useMemo(
-    () => links.map((item) => item.toLowerCase()),
-    [links]
-  );
-
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 18);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 30);
+
+      const sections = document.querySelectorAll("section[id]");
+
+      let current = "hero";
+
+      sections.forEach((section) => {
+        const top = (section as HTMLElement).offsetTop - 140;
+        const height = (section as HTMLElement).offsetHeight;
+
+        if (window.scrollY >= top && window.scrollY < top + height) {
+          current = section.id;
+        }
+      });
+
+      setActive(current);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll);
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const sections = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter(Boolean) as HTMLElement[];
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const current = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort(
-            (a, b) => b.intersectionRatio - a.intersectionRatio
-          )[0];
+    if (!section) return;
 
-        if (current?.target?.id) {
-          setActiveLink(current.target.id);
-        }
-      },
-      {
-        rootMargin: "-30% 0px -55% 0px",
-        threshold: [0.15, 0.4, 0.65],
-      }
-    );
+    window.scrollTo({
+      top: section.offsetTop - 90,
+      behavior: "smooth",
+    });
 
-    sections.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, [sectionIds]);
-
-  const linkClass = (link: string) => {
-    const isActive = activeLink === link.toLowerCase();
-
-    return `relative px-1 py-1 text-sm font-semibold transition ${
-      isActive
-        ? "text-[var(--primary)]"
-        : "text-slate-700 hover:text-[var(--primary)]"
-    } after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:rounded-full after:bg-[var(--primary)] after:transition-all ${
-      isActive ? "after:w-full" : "after:w-0 hover:after:w-full"
-    }`;
+    setOpen(false);
   };
 
-  const closeMenu = () => setIsOpen(false);
-
   return (
-    <nav
+    <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/75 backdrop-blur-2xl border-b border-white/50 shadow-[0_10px_25px_rgba(25,36,66,0.08)]"
+          ? "bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/60"
           : "bg-transparent"
       }`}
     >
       <div className="section-shell h-20 flex items-center justify-between">
-        <a
-          href="#"
+
+        <button
+          onClick={() =>
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            })
+          }
           className="display text-3xl font-extrabold text-[var(--primary)]"
         >
           Frenita
-        </a>
+        </button>
 
-        <div className="hidden md:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-9">
+
           {links.map((link) => (
-            <a
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              className={linkClass(link)}
+
+            <button
+              key={link.id}
+              onClick={() => scrollToSection(link.id)}
+              className={`relative font-semibold transition duration-300
+
+              ${
+                active === link.id
+                  ? "text-[var(--primary)]"
+                  : "text-slate-700 hover:text-[var(--primary)]"
+              }
+
+              after:absolute
+              after:left-0
+              after:-bottom-2
+              after:h-[2px]
+              after:bg-[var(--primary)]
+              after:rounded-full
+              after:transition-all
+
+              ${
+                active === link.id
+                  ? "after:w-full"
+                  : "after:w-0 hover:after:w-full"
+              }
+              `}
             >
-              {link}
-            </a>
+              {link.label}
+            </button>
+
           ))}
-        </div>
+
+        </nav>
 
         <button
-          className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-xl text-slate-700"
-          onClick={() => setIsOpen((prev) => !prev)}
-          aria-label="Toggle navigation"
+          className="lg:hidden w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center"
+          onClick={() => setOpen(!open)}
         >
-          {isOpen ? <FaTimes /> : <FaBars />}
+          {open ? <FaTimes /> : <FaBars />}
         </button>
+
       </div>
 
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
-          isOpen ? "max-h-[360px] border-t border-slate-200/70" : "max-h-0"
-        } bg-white/92 backdrop-blur-2xl`}
+        className={`lg:hidden overflow-hidden transition-all duration-300
+
+        ${
+          open
+            ? "max-h-[500px]"
+            : "max-h-0"
+        }
+
+        bg-white/95 backdrop-blur-xl`}
       >
-        <div className="section-shell py-4 grid gap-2">
-          {links.map((link) => {
-            const isActive = activeLink === link.toLowerCase();
-            return (
-              <a
-                key={link}
-                href={`#${link.toLowerCase()}`}
-                onClick={closeMenu}
-                className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                  isActive
-                    ? "bg-[var(--soft-primary)] text-[var(--primary)]"
-                    : "text-slate-700 hover:bg-slate-100"
-                }`}
-              >
-                {link}
-              </a>
-            );
-          })}
+
+        <div className="section-shell py-5 flex flex-col gap-2">
+
+          {links.map((link) => (
+
+            <button
+              key={link.id}
+              onClick={() => scrollToSection(link.id)}
+              className={`rounded-xl py-3 font-semibold transition
+
+              ${
+                active === link.id
+                  ? "bg-[var(--soft-primary)] text-[var(--primary)]"
+                  : "hover:bg-slate-100"
+              }
+              `}
+            >
+              {link.label}
+            </button>
+
+          ))}
+
         </div>
+
       </div>
-    </nav>
+    </header>
   );
 }
 
