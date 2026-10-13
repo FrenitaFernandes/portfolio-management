@@ -1,11 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import {
-  FaEnvelope,
-  FaPhone,
-  FaGithub,
-  FaLinkedin,
-} from "react-icons/fa";
+import { useState } from "react";
 import api from "../services/api";
 
 function Contact() {
@@ -15,21 +9,6 @@ function Contact() {
     phone: "",
     message: "",
   });
-  const [profile, setProfile] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await api.get("/profile");
-        setProfile(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -70,87 +49,23 @@ function Contact() {
           </span>
 
           <h2 className="section-title display">
-            Let's Work Together
+            Let&apos;s Connect
           </h2>
 
           <p className="section-subtitle">
-            Have a project, internship opportunity or collaboration in
-            mind? Feel free to contact me.
+            I&apos;m open to opportunities in software development, full-stack
+            development, and quality assurance. Feel free to connect with me
+            to discuss opportunities and projects.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-8 items-start">
-          <div className="glass-card p-7 md:p-9">
-            <h3 className="display text-3xl font-bold text-[var(--text)]">
-              Get in Touch
-            </h3>
-
-            <p className="mt-4 text-[var(--muted)] leading-8 text-lg">
-              I'm always open to discussing internships,
-              freelance work and exciting opportunities.
-            </p>
-
-            <div className="mt-9 space-y-6">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-[var(--soft-primary)] flex items-center justify-center text-[var(--primary)]">
-                  <FaEnvelope />
-                </div>
-
-                <div>
-                  <p className="font-semibold text-[var(--text)]">Email</p>
-                  <p className="text-[var(--muted)] break-all">
-                    {profile?.email || "your-email@example.com"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-[var(--soft-primary)] flex items-center justify-center text-[var(--primary)]">
-                  <FaPhone />
-                </div>
-
-                <div>
-                  <p className="font-semibold text-[var(--text)]">Phone</p>
-                  <p className="text-[var(--muted)]">
-                    {profile?.phone || "Add phone in admin profile"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                {profile?.github && (
-                  <a
-                    href={profile.github}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="secondary-btn"
-                  >
-                    <FaGithub />
-                    GitHub
-                  </a>
-                )}
-
-                {profile?.linkedin && (
-                  <a
-                    href={profile.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="secondary-btn"
-                  >
-                    <FaLinkedin />
-                    LinkedIn
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-
+        <div className="flex justify-center">
           <motion.form
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="glass-card p-7 md:p-9 space-y-5"
+            className="glass-card w-full max-w-2xl space-y-5 p-7 md:p-9"
             autoComplete="off"
           >
             <p className="text-sm text-[var(--muted)]">

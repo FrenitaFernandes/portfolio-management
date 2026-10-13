@@ -8,6 +8,7 @@ function Navbar() {
 
   const links = useMemo(
     () => [
+      { id: "hero", label: "Home" },
       { id: "about", label: "About" },
       { id: "resume", label: "Resume" },
       { id: "skills", label: "Skills" },
@@ -62,7 +63,7 @@ function Navbar() {
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/60"
+          ? "bg-[#0c0c1e]/90 backdrop-blur-xl shadow-lg border-b border-[var(--border)]"
           : "bg-transparent"
       }`}
     >
@@ -75,9 +76,10 @@ function Navbar() {
               behavior: "smooth",
             })
           }
-          className="display text-3xl font-extrabold text-[var(--primary)]"
+          className="brand-mark display"
         >
-          Frenita
+          <span className="brand-mark__symbol">&lt;/&gt;</span>
+          <span>Frenita<span className="brand-mark__dot">.</span></span>
         </button>
 
         <nav className="hidden lg:flex items-center gap-9">
@@ -92,7 +94,7 @@ function Navbar() {
               ${
                 active === link.id
                   ? "text-[var(--primary)]"
-                  : "text-slate-700 hover:text-[var(--primary)]"
+                  : "text-[#c6c6d7] hover:text-[var(--primary)]"
               }
 
               after:absolute
@@ -118,7 +120,14 @@ function Navbar() {
         </nav>
 
         <button
-          className="lg:hidden w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center"
+          onClick={() => scrollToSection("contact")}
+          className="nav-cta hidden lg:inline-flex"
+        >
+          Let&apos;s talk <span aria-hidden="true">↗</span>
+        </button>
+
+        <button
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-strong)] text-white lg:hidden"
           onClick={() => setOpen(!open)}
         >
           {open ? <FaTimes /> : <FaBars />}
@@ -135,7 +144,7 @@ function Navbar() {
             : "max-h-0"
         }
 
-        bg-white/95 backdrop-blur-xl`}
+        bg-[#0c0c1e]/95 backdrop-blur-xl`}
       >
 
         <div className="section-shell py-5 flex flex-col gap-2">
@@ -150,7 +159,7 @@ function Navbar() {
               ${
                 active === link.id
                   ? "bg-[var(--soft-primary)] text-[var(--primary)]"
-                  : "hover:bg-slate-100"
+                  : "text-[#c6c6d7] hover:bg-[var(--soft-primary)]"
               }
               `}
             >

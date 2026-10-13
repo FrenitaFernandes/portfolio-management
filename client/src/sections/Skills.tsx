@@ -1,18 +1,89 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import type { IconType } from "react-icons";
+import {
+  SiPython,
+  SiJavascript,
+  SiHtml5,
+  SiCss,
+  SiReact,
+  SiNodedotjs,
+  SiExpress,
+  SiMysql,
+  SiMongodb,
+  SiGit,
+  SiGithub,
+  SiC,
+} from "react-icons/si";
+import {
+  FaDatabase,
+  FaCode,
+  FaChartLine,
+  FaCheckCircle,
+  FaLayerGroup,
+  FaJava,
+} from "react-icons/fa";
 import api from "../services/api";
+import { skills as fallbackSkills } from "../data/portfolio";
+
+const skillIcons: Record<string, IconType> = {
+  Python: SiPython,
+  JavaScript: SiJavascript,
+  SQL: FaDatabase,
+  HTML5: SiHtml5,
+  CSS3: SiCss,
+  "React.js": SiReact,
+  "Node.js": SiNodedotjs,
+  "Express.js": SiExpress,
+  MySQL: SiMysql,
+  MongoDB: SiMongodb,
+  Git: SiGit,
+  GitHub: SiGithub,
+  C: SiC,
+  "Core Java": FaJava,
+  "Software Development": FaCode,
+  "MERN Stack Development": FaLayerGroup,
+  "Quality Assurance": FaCheckCircle,
+  "Data Analytics": FaChartLine,
+};
+
+const categoryOrder = [
+  "Programming Languages",
+  "Frontend Development",
+  "Backend Development",
+  "Databases",
+  "Tools",
+  "Areas of Interest",
+];
 
 function Skills() {
-  const [skills, setSkills] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [skills, setSkills] = useState<any[]>(fallbackSkills);
+  const [loading, setLoading] = useState(false);
+  const categories = [
+    ...categoryOrder,
+    ...skills
+      .map((skill) => skill.category)
+      .filter((category) => category && !categoryOrder.includes(category)),
+  ].filter((category, index, all) => all.indexOf(category) === index);
 
   useEffect(() => {
     const fetchSkills = async () => {
       try {
         const response = await api.get("/skills");
-        setSkills(response.data);
+        const apiSkills = response.data || [];
+        const mergedSkills = apiSkills.length
+          ? [
+              ...apiSkills,
+              ...fallbackSkills.filter(
+                (fallback) =>
+                  !apiSkills.some((skill: { name: string }) => skill.name === fallback.name)
+              ),
+            ]
+          : fallbackSkills;
+        setSkills(mergedSkills);
       } catch (error) {
         console.error(error);
+        setSkills(fallbackSkills);
       } finally {
         setLoading(false);
       }
@@ -39,57 +110,61 @@ function Skills() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-14">
+        <div className="mt-14 space-y-10">
           {loading && (
-            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 glass-card p-6 text-center text-[var(--muted)]">
+            <div className="glass-card p-6 text-center text-[var(--muted)]">
               Loading skills...
             </div>
           )}
 
           {!loading && skills.length === 0 && (
-            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 glass-card p-8 text-center text-[var(--muted)]">
-              No skills added yet.
+            <div className="glass-card p-8 text-center text-[var(--muted)]">
+              Skills will be added soon.
             </div>
           )}
 
-          {skills.map((skill, index) => (
-            <motion.div
-              key={skill._id}
-              initial={{
-                opacity: 0,
-                y: 30,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-              }}
-              viewport={{
-                once: true,
-              }}
-              transition={{
-                duration: 0.4,
-                delay: index * 0.05,
-              }}
-              whileHover={{
-                y: -8,
-              }}
-              className="elevated-card p-7 text-center"
-            >
-              <div
-                className="w-16 h-16 rounded-[1.1rem] bg-[var(--soft-primary)] text-[var(--primary)] font-bold text-xl flex items-center justify-center mx-auto"
-              >
-                {skill.name.charAt(0)}
+          {!loading && categories.map((category) => {
+            const categorySkills = skills.filter((skill) => skill.category === category);
+
+            if (categorySkills.length === 0) return null;
+
+            return (
+              <div key={category}>
+                <div className="mb-5 flex items-center gap-4">
+                  <h3 className="display text-xl font-bold text-[var(--text)] sm:text-2xl">
+                    {category}
+                  </h3>
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {categorySkills.map((skill, index) => {
+                    const Icon = skillIcons[skill.name] || FaCode;
+
+                    return (
+                      <motion.div
+                        key={skill._id || skill.name}
+                        initial={{ opacity: 0, y: 24 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.35, delay: index * 0.05 }}
+                        whileHover={{ y: -6 }}
+                        className="elevated-card flex min-h-36 flex-col items-center justify-center p-6 text-center"
+                      >
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--soft-primary)] text-3xl text-[var(--primary)]">
+                          <Icon aria-hidden="true" />
+                        </div>
+
+                        <h4 className="mt-4 text-base font-bold text-[var(--text)] sm:text-lg">
+                          {skill.name}
+                        </h4>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
-
-              <h3 className="mt-5 text-lg font-bold text-[var(--text)]">
-                {skill.name}
-              </h3>
-
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                {skill.category}
-              </p>
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

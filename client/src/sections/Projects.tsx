@@ -2,18 +2,35 @@ import { motion } from "framer-motion";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import api, { ASSET_BASE_URL } from "../services/api";
+import { projects as fallbackProjects } from "../data/portfolio";
 
 function Projects() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<any[]>(fallbackProjects);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const response = await api.get("/projects");
-        setProjects(response.data);
+        const apiProjects = response.data || [];
+        setProjects(
+          apiProjects.length
+            ? apiProjects.map((project: any) => {
+                const fallback = fallbackProjects.find(
+                  (item) => item.title === project.title
+                );
+                return {
+                  ...fallback,
+                  ...project,
+                  githubLink: fallback?.githubLink || project.githubLink,
+                  image: fallback?.image || project.image,
+                };
+              })
+            : fallbackProjects
+        );
       } catch (error) {
         console.error(error);
+        setProjects(fallbackProjects);
       } finally {
         setLoading(false);
       }
@@ -71,13 +88,20 @@ function Projects() {
               <div className="overflow-hidden h-56 bg-gradient-to-br from-[#eaebff] to-[#dff1f3]">
                 {project.image ? (
                   <img
-                    src={`${ASSET_BASE_URL}${project.image}`}
+                    src={project.image.startsWith("/")
+                      ? project.image
+                      : `${ASSET_BASE_URL}${project.image}`}
                     alt={project.title}
                     className="w-full h-full object-cover transition duration-500 hover:scale-105"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[var(--muted)] font-semibold">
-                    Project image
+                  <div className="project-placeholder w-full h-full flex flex-col items-center justify-center text-[var(--text)]">
+                    <span className="text-5xl font-black opacity-20">
+                      0{index + 1}
+                    </span>
+                    <span className="mt-2 text-sm font-bold uppercase tracking-[0.18em] opacity-60">
+                      Selected work
+                    </span>
                   </div>
                 )}
               </div>
@@ -107,7 +131,7 @@ function Projects() {
                     href={project.githubLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="primary-btn flex-1"
+                    className={`primary-btn flex-1 ${!project.githubLink ? "pointer-events-none opacity-60" : ""}`}
                   >
                     <FaGithub />
                     GitHub

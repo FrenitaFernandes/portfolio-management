@@ -3,9 +3,10 @@ import { FaDownload, FaEye, FaFilePdf } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import api, { ASSET_BASE_URL } from "../services/api";
 
+const localResumeUrl = "/resume.pdf";
+
 function Resume() {
   const [resume, setResume] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -13,30 +14,16 @@ function Resume() {
         const response = await api.get("/resume");
         setResume(response.data);
       } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching uploaded resume:", error);
       }
     };
 
     fetchResume();
   }, []);
 
-  if (loading) {
-    return (
-      <section id="resume" className="section-block">
-        <div className="section-shell">
-          <div className="glass-card p-8 text-center text-[var(--muted)]">
-            Loading resume...
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!resume?.fileUrl) return null;
-
-  const resumeUrl = `${ASSET_BASE_URL}${resume.fileUrl}`;
+  const resumeUrl = resume?.fileUrl
+    ? `${ASSET_BASE_URL}${resume.fileUrl}`
+    : localResumeUrl;
 
   return (
     <section id="resume" className="section-block">

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { experience as fallbackExperience } from "../data/portfolio";
 
 interface Experience {
   _id: string;
@@ -8,18 +9,20 @@ interface Experience {
   company: string;
   duration: string;
   description: string;
+  skills: string[];
 }
 
 function Experience() {
-  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [experiences, setExperiences] = useState<Experience[]>(fallbackExperience);
 
   useEffect(() => {
     const fetchExperience = async () => {
       try {
         const response = await api.get("/experience");
-        setExperiences(response.data);
+        setExperiences(response.data?.length ? response.data : fallbackExperience);
       } catch (error) {
         console.error("Error fetching experience:", error);
+        setExperiences(fallbackExperience);
       }
     };
 
@@ -33,7 +36,7 @@ function Experience() {
   return (
     <section id="experience" className="section-block">
       <div className="section-shell">
-        <div className="text-center mb-14">
+        <div className="mx-auto mb-16 max-w-3xl text-center">
           <span className="section-tag">
             Career Journey
           </span>
@@ -48,43 +51,51 @@ function Experience() {
           </p>
         </div>
 
-        <div className="relative max-w-4xl mx-auto">
-          <div className="absolute left-4 top-2 bottom-4 w-[2px] bg-gradient-to-b from-[#5b57d7]/55 to-[#5b57d7]/5 rounded-full" />
+        <div className="relative mx-auto max-w-4xl">
+          <div className="absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 rounded-full bg-gradient-to-b from-[#8170ff]/80 via-[#8170ff]/40 to-[#8170ff]/10" />
 
           {experiences.map((item, index) => (
             <motion.div
               key={item._id}
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 32 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{
                 duration: 0.5,
                 delay: index * 0.15,
               }}
-              className="relative pl-12 sm:pl-16 pb-8"
+              className="relative pt-4 pb-14 last:pb-0"
             >
-              <div className="absolute left-0 top-6 w-8 h-8 rounded-full bg-[var(--primary)] border-4 border-white shadow-lg" />
+              <div className="absolute left-1/2 top-0 z-10 h-8 w-8 -translate-x-1/2 rounded-full border-4 border-[#080815] bg-[#8170ff] shadow-[0_0_0_5px_rgba(129,112,255,0.16)]" />
 
-              <div className="elevated-card p-6 sm:p-8">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-                  <div>
-                    <h3 className="display text-2xl font-bold text-[var(--text)]">
+              <div className="relative z-[1] mx-auto min-w-0 max-w-3xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 pt-10 shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-hover)] sm:p-8 sm:pt-10">
+                <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+                  <div className="min-w-0">
+                    <h3 className="display break-words text-2xl font-bold leading-tight text-[var(--text)] sm:text-3xl">
                       {item.role}
                     </h3>
 
-                    <p className="text-[var(--primary)] font-bold mt-2">
+                    <p className="mt-2 break-words font-bold leading-relaxed text-[var(--primary)]">
                       {item.company}
                     </p>
                   </div>
 
-                  <span className="mt-4 md:mt-0 soft-chip">
+                  <span className="soft-chip w-fit shrink-0 whitespace-normal text-left leading-relaxed md:mt-1 md:whitespace-nowrap">
                     {item.duration}
                   </span>
                 </div>
 
-                <p className="mt-5 text-[var(--muted)] leading-8">
+                <p className="mt-5 break-words text-[var(--muted)] leading-8">
                   {item.description}
                 </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {item.skills.map((skill) => (
+                    <span key={skill} className="soft-chip whitespace-nowrap">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               </div>
             </motion.div>
           ))}
