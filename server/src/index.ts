@@ -29,9 +29,18 @@ const allowedOrigins = [
   "https://portfolio-management-frenita.vercel.app",
   ...configuredOrigins,
 ];
+const isVercelPortfolioOrigin = (origin: string) =>
+  /^https:\/\/portfolio-management(?:-[a-z0-9-]+)?-frenita\.vercel\.app$/i.test(origin);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || isVercelPortfolioOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Origin is not allowed by CORS"));
+  },
   credentials: true,
 }))
 app.use(express.json())
