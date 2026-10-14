@@ -15,6 +15,7 @@ function Contact() {
     phone: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -28,7 +29,11 @@ function Contact() {
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
       await api.post("/contact", formData);
 
@@ -76,6 +81,8 @@ function Contact() {
       } else {
         alert("Failed to send message. Please try again.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -156,8 +163,9 @@ function Contact() {
             <button
               type="submit"
               className="primary-btn w-full py-3"
+              disabled={isSubmitting}
             >
-              Send Message
+              {isSubmitting ? "Sending..." : "Send Message"}
             </button>
           </motion.form>
         </div>
