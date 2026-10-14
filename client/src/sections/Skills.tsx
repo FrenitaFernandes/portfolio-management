@@ -47,6 +47,23 @@ const skillIcons: Record<string, IconType> = {
   "Data Analytics": FaChartLine,
 };
 
+const skillColors: Record<string, string> = {
+  Python: "#3776AB",
+  JavaScript: "#F7DF1E",
+  SQL: "#4479A1",
+  HTML5: "#E34F26",
+  CSS3: "#1572B6",
+  "React.js": "#61DAFB",
+  "Node.js": "#339933",
+  "Express.js": "#111827",
+  MySQL: "#4479A1",
+  MongoDB: "#47A248",
+  Git: "#F05032",
+  GitHub: "#181717",
+  C: "#A8B9CC",
+  "Core Java": "#E76F00",
+};
+
 const categoryOrder = [
   "Programming Languages",
   "Frontend Development",
@@ -151,7 +168,10 @@ function Skills() {
                         whileHover={{ y: -6 }}
                         className="elevated-card flex min-h-36 flex-col items-center justify-center p-6 text-center"
                       >
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--soft-primary)] text-3xl text-[var(--primary)]">
+                        <div
+                          className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--soft-primary)] text-3xl"
+                          style={{ color: skillColors[skill.name] || "var(--primary)" }}
+                        >
                           <Icon aria-hidden="true" />
                         </div>
 

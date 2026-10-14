@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import api, { ASSET_BASE_URL } from "../services/api";
+import api, { resolveAssetUrl } from "../services/api";
 import { projects as fallbackProjects } from "../data/portfolio";
 
 function Projects() {
@@ -15,7 +15,8 @@ function Projects() {
         const apiProjects = response.data || [];
         setProjects(
           apiProjects.length
-            ? apiProjects.map((project: any) => {
+            ? [
+                ...apiProjects.map((project: any) => {
                 const fallback = fallbackProjects.find(
                   (item) => item.title === project.title
                 );
@@ -25,7 +26,12 @@ function Projects() {
                   githubLink: fallback?.githubLink || project.githubLink,
                   image: fallback?.image || project.image,
                 };
-              })
+                }),
+                ...fallbackProjects.filter(
+                  (fallback) =>
+                    !apiProjects.some((project: any) => project.title === fallback.title)
+                ),
+              ]
             : fallbackProjects
         );
       } catch (error) {
@@ -88,9 +94,7 @@ function Projects() {
               <div className="overflow-hidden h-56 bg-gradient-to-br from-[#eaebff] to-[#dff1f3]">
                 {project.image ? (
                   <img
-                    src={project.image.startsWith("/")
-                      ? project.image
-                      : `${ASSET_BASE_URL}${project.image}`}
+                    src={resolveAssetUrl(project.image)}
                     alt={project.title}
                     className="w-full h-full object-cover transition duration-500 hover:scale-105"
                   />

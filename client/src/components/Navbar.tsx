@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaMoon, FaSun, FaTimes } from "react-icons/fa";
 
 function Navbar() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("hero");
   const [scrolled, setScrolled] = useState(false);
+  const [lightMode, setLightMode] = useState(
+    () => window.localStorage.getItem("portfolio-theme") === "light",
+  );
 
   const links = useMemo(
     () => [
@@ -57,6 +60,16 @@ function Navbar() {
     });
 
     setOpen(false);
+  };
+
+  const toggleTheme = () => {
+    const nextLightMode = !lightMode;
+    setLightMode(nextLightMode);
+    document.body.classList.toggle("light-mode", nextLightMode);
+    window.localStorage.setItem(
+      "portfolio-theme",
+      nextLightMode ? "light" : "dark",
+    );
   };
 
   return (
@@ -119,19 +132,26 @@ function Navbar() {
 
         </nav>
 
-        <button
-          onClick={() => scrollToSection("contact")}
-          className="nav-cta hidden lg:inline-flex"
-        >
-          Let&apos;s talk <span aria-hidden="true">↗</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            className="theme-toggle"
+            type="button"
+            onClick={toggleTheme}
+            aria-label={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+            title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            {lightMode ? <FaMoon /> : <FaSun />}
+          </button>
 
-        <button
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-strong)] text-white lg:hidden"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? <FaTimes /> : <FaBars />}
-        </button>
+          <button
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-strong)] text-white lg:hidden"
+            onClick={() => setOpen(!open)}
+            type="button"
+            aria-label={open ? "Close menu" : "Open menu"}
+          >
+            {open ? <FaTimes /> : <FaBars />}
+          </button>
+        </div>
 
       </div>
 

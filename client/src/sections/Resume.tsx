@@ -1,12 +1,11 @@
 import { motion } from "framer-motion";
 import { FaDownload, FaEye, FaFilePdf } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import api, { ASSET_BASE_URL } from "../services/api";
-
-const localResumeUrl = "/resume.pdf";
+import api, { resolveAssetUrl } from "../services/api";
 
 function Resume() {
-  const [resume, setResume] = useState<any>(null);
+  const [resume, setResume] = useState<{ fileUrl?: string; fileName?: string } | null>(null);
+  const [downloadError, setDownloadError] = useState("");
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -22,8 +21,32 @@ function Resume() {
   }, []);
 
   const resumeUrl = resume?.fileUrl
-    ? `${ASSET_BASE_URL}${resume.fileUrl}`
-    : localResumeUrl;
+    ? resolveAssetUrl(resume.fileUrl)
+    : resolveAssetUrl("/api/assets/resume");
+
+  const downloadResume = async () => {
+    setDownloadError("");
+
+    try {
+      const response = await fetch(resumeUrl);
+      if (!response.ok) {
+        throw new Error(`Resume request failed with status ${response.status}`);
+      }
+
+      const resumeBlob = await response.blob();
+      const downloadUrl = URL.createObjectURL(resumeBlob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = resume?.fileName || "Frenita-Fernandes-Resume.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Unable to download resume:", error);
+      setDownloadError("The resume could not be downloaded. Please try again.");
+    }
+  };
 
   return (
     <section id="resume" className="section-block">
@@ -62,15 +85,21 @@ function Resume() {
                   View Resume
                 </a>
 
-                <a
-                  href={resumeUrl}
-                  download
+                <button
+                  type="button"
+                  onClick={downloadResume}
                   className="secondary-btn"
                 >
                   <FaDownload />
                   Download
-                </a>
+                </button>
               </div>
+
+              {downloadError && (
+                <p className="mt-4 text-sm text-red-400" role="alert">
+                  {downloadError}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-center">

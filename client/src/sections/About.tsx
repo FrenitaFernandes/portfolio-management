@@ -12,7 +12,14 @@ function About() {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/profile");
-        setProfile({ ...fallbackProfile, ...(response.data || {}) });
+        const apiProfile = response.data || {};
+        const populatedProfile = Object.fromEntries(
+          Object.entries(apiProfile).filter(([, value]) => value !== null && value !== undefined && value !== "")
+        );
+        setProfile({
+          ...fallbackProfile,
+          ...(populatedProfile.profileImage ? { profileImage: populatedProfile.profileImage } : {}),
+        });
       } catch (error) {
         console.error(error);
         setProfile(fallbackProfile);
@@ -78,9 +85,12 @@ function About() {
                       Email
                     </p>
 
-                    <p className="mt-3 text-lg font-semibold text-[var(--text)] break-all">
+                    <a
+                      href={`mailto:${profile.email}`}
+                      className="about-email mt-3 inline-block whitespace-nowrap font-semibold text-[var(--text)]"
+                    >
                       {profile.email}
-                    </p>
+                    </a>
                   </div>
 
                   <div>

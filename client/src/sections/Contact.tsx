@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import axios from "axios";
+import emailjs from "@emailjs/browser";
 import api from "../services/api";
+
+const emailJsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const emailJsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const emailJsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -26,7 +32,36 @@ function Contact() {
     try {
       await api.post("/contact", formData);
 
-      alert("Message sent successfully!");
+      if (
+        !emailJsServiceId ||
+        !emailJsTemplateId ||
+        !emailJsPublicKey
+      ) {
+        alert(
+          "Your message was saved, but email notifications are not configured yet."
+        );
+      } else {
+        try {
+          await emailjs.send(
+            emailJsServiceId,
+            emailJsTemplateId,
+            {
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+              message: formData.message,
+              to_email: "frenitafernandes@gmail.com",
+            },
+            { publicKey: emailJsPublicKey },
+          );
+          alert("Message sent successfully!");
+        } catch (error) {
+          console.error("EmailJS notification failed:", error);
+          alert(
+            "Your message was saved, but the email notification could not be sent. Please try again later.",
+          );
+        }
+      }
 
       setFormData({
         name: "",
@@ -36,7 +71,11 @@ function Contact() {
       });
     } catch (error) {
       console.error(error);
-      alert("Failed to send message");
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("Failed to send message. Please try again.");
+      }
     }
   };
 

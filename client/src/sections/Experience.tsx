@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import api from "../services/api";
+import api, { resolveAssetUrl } from "../services/api";
 import { experience as fallbackExperience } from "../data/portfolio";
 
 interface Experience {
@@ -10,6 +10,7 @@ interface Experience {
   duration: string;
   description: string;
   skills: string[];
+  logo: string;
 }
 
 function Experience() {
@@ -19,7 +20,20 @@ function Experience() {
     const fetchExperience = async () => {
       try {
         const response = await api.get("/experience");
-        setExperiences(response.data?.length ? response.data : fallbackExperience);
+        const apiExperiences = response.data || [];
+        setExperiences(
+          apiExperiences.length
+            ? [
+                ...fallbackExperience.map((fallback) => {
+                  const item = apiExperiences.find(
+                    (entry: Experience) =>
+                      entry.role === fallback.role && entry.company === fallback.company
+                  );
+                  return { ...fallback, ...item, skills: item?.skills || fallback.skills, logo: fallback.logo };
+                }),
+              ]
+            : fallbackExperience
+        );
       } catch (error) {
         console.error("Error fetching experience:", error);
         setExperiences(fallbackExperience);
@@ -68,8 +82,11 @@ function Experience() {
             >
               <div className="absolute left-1/2 top-0 z-10 h-8 w-8 -translate-x-1/2 rounded-full border-4 border-[#080815] bg-[#8170ff] shadow-[0_0_0_5px_rgba(129,112,255,0.16)]" />
 
-              <div className="relative z-[1] mx-auto min-w-0 max-w-3xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 pt-10 shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-hover)] sm:p-8 sm:pt-10">
-                <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+              <div className="experience-card relative z-[1] mx-auto min-w-0 max-w-3xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 pt-10 text-center shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-hover)] sm:p-8 sm:pt-10">
+                {item.logo && (
+                  <img src={resolveAssetUrl(item.logo)} alt="" className="mx-auto mb-5 h-16 w-24 object-contain rounded-xl bg-white p-2" />
+                )}
+                <div className="experience-card__header flex min-w-0 flex-col items-center gap-4 md:flex-row md:justify-center md:gap-8">
                   <div className="min-w-0">
                     <h3 className="display break-words text-2xl font-bold leading-tight text-[var(--text)] sm:text-3xl">
                       {item.role}
@@ -80,16 +97,16 @@ function Experience() {
                     </p>
                   </div>
 
-                  <span className="soft-chip w-fit shrink-0 whitespace-normal text-left leading-relaxed md:mt-1 md:whitespace-nowrap">
+                  <span className="soft-chip w-fit shrink-0 whitespace-normal leading-relaxed md:mt-1 md:whitespace-nowrap">
                     {item.duration}
                   </span>
                 </div>
 
-                <p className="mt-5 break-words text-[var(--muted)] leading-8">
+                <p className="mx-auto mt-5 max-w-2xl break-words text-[var(--muted)] leading-8">
                   {item.description}
                 </p>
 
-                <div className="mt-6 flex flex-wrap gap-2">
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
                   {item.skills.map((skill) => (
                     <span key={skill} className="soft-chip whitespace-nowrap">
                       {skill}

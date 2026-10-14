@@ -6,7 +6,7 @@ import {
   FaCalendarAlt,
   FaAward,
 } from "react-icons/fa";
-import api from "../services/api";
+import api, { resolveAssetUrl } from "../services/api";
 import { education as fallbackEducation } from "../data/portfolio";
 
 interface Education {
@@ -15,6 +15,7 @@ interface Education {
   college: string;
   year: string;
   cgpa: string;
+  logo: string;
 }
 
 function Education() {
@@ -27,12 +28,14 @@ function Education() {
         const apiEducation = response.data || [];
         setEducation(
           apiEducation.length
-            ? apiEducation.map((item: Education) => {
-                const fallback = fallbackEducation.find(
-                  (entry) => entry.degree === item.degree
-                );
-                return { ...fallback, ...item, cgpa: fallback?.cgpa || item.cgpa };
-              })
+            ? [
+                ...fallbackEducation.map((fallback) => {
+                  const item = apiEducation.find(
+                    (entry: Education) => entry.degree === fallback.degree
+                  );
+                  return { ...fallback, ...item, cgpa: fallback.cgpa, logo: fallback.logo };
+                }),
+              ]
             : fallbackEducation
         );
       } catch (error) {
@@ -105,10 +108,12 @@ function Education() {
 
                 <div className="flex min-w-0 items-start gap-4 sm:gap-5">
 
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--soft-primary)] text-2xl text-[var(--primary)] sm:h-16 sm:w-16 sm:text-3xl">
-
-                    <FaGraduationCap />
-
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white p-2 sm:h-16 sm:w-16">
+                    {item.logo ? (
+                      <img src={resolveAssetUrl(item.logo)} alt="" className="h-full w-full object-contain" />
+                    ) : (
+                      <FaGraduationCap className="text-2xl text-[var(--primary)] sm:text-3xl" />
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">

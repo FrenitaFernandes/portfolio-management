@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import api, { ASSET_BASE_URL } from "../services/api";
+import api, { resolveAssetUrl } from "../services/api";
 import { certifications as fallbackCertifications } from "../data/portfolio";
 
 interface Certification {
@@ -23,7 +23,19 @@ function Certifications() {
     const fetchCertifications = async () => {
       try {
         const response = await api.get("/certifications");
-        setCertifications(response.data?.length ? response.data : fallbackCertifications);
+        const apiCertifications = response.data || [];
+        setCertifications(
+          apiCertifications.length
+            ? [
+                ...fallbackCertifications.map((fallback) => {
+                  const item = apiCertifications.find(
+                    (entry: Certification) => entry.title === fallback.title
+                  );
+                  return { ...fallback, ...item, image: fallback.image };
+                }),
+              ]
+            : fallbackCertifications
+        );
       } catch (error) {
         console.error("Error fetching certifications:", error);
         setCertifications(fallbackCertifications);
@@ -65,9 +77,7 @@ function Certifications() {
               issuer: "Certification",
               label: "Achievement",
             };
-            const imageUrl = certificate.image?.startsWith("/")
-              ? certificate.image
-              : `${ASSET_BASE_URL}${certificate.image}`;
+            const imageUrl = resolveAssetUrl(certificate.image);
 
             return (
             <motion.div

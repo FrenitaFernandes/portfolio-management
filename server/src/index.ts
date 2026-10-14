@@ -13,6 +13,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import educationRoutes from "./routes/educationRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
+import assetRoutes from "./routes/assetRoutes.js";
 
 const app = express()
 const port = Number(process.env.PORT) || 5000
@@ -42,6 +43,7 @@ app.use("/api/certifications", certificationRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/education", educationRoutes);
 app.use("/api/experience", experienceRoutes);
+app.use("/api/assets", assetRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/upload", uploadRoutes);

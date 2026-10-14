@@ -52,6 +52,7 @@ export const projects: ProjectItem[] = [
     description: 'A web application for showcasing projects, education, certifications, skills, and professional information.',
     tech: ['React', 'TypeScript', 'Node.js', 'Express.js', 'MongoDB'],
     githubLink: 'https://github.com/FrenitaFernandes/portfolio-management',
+    image: '/projects/portfolio-management.png',
   },
   {
     _id: 'eye-disease',
@@ -84,6 +85,7 @@ export const experience = [
     duration: 'January 2026 – May 2026',
     description: 'Developed a Sales and CRM Management System to manage leads, customer interactions, follow-ups, and sales activities. Implemented responsive interfaces and integrated backend services to support database-driven business workflows. Built analytics and reporting features to provide insights into sales performance and customer engagement.',
     skills: ['React.js', 'JavaScript', 'HTML', 'CSS', 'Node.js', 'MongoDB'],
+    logo: '/api/assets/logo-rdl',
   },
   {
     _id: 'cognifyz',
@@ -92,14 +94,15 @@ export const experience = [
     duration: 'July 2025 – August 2025',
     description: 'Developed dynamic and scalable web applications using the MERN stack, handling both frontend and backend development.',
     skills: ['HTML', 'CSS', 'JavaScript', 'Node.js', 'SQL'],
+    logo: '/api/assets/logo-cognifyz',
   },
 ]
 
 export const education = [
-  { _id: 'mca', degree: 'Master of Computer Applications (MCA)', college: 'St. Aloysius College, Mangaluru', year: '2024 – 2026', cgpa: '8.6 CGPA' },
-  { _id: 'bsc', degree: 'Bachelor of Science (BSc)', college: 'Alva’s Degree College, Moodbidri', year: '2021 – 2024', cgpa: '9.01 CGPA · Computer Science and Mathematics' },
-  { _id: 'puc', degree: 'Pre-University Course (PUC)', college: 'Vani Pre-University College, Belthangady', year: '2019 – 2021', cgpa: '84% · Science (PCMB)' },
-  { _id: 'sslc', degree: 'SSLC', college: 'St. Theresa English Medium High School, Belthangady', year: '2016 – 2019', cgpa: '87%' },
+  { _id: 'mca', degree: 'Master of Computer Applications (MCA)', college: 'St. Aloysius College, Mangaluru', year: '2024 – 2026', cgpa: '8.6 CGPA', logo: '/api/assets/logo-aloysius' },
+  { _id: 'bsc', degree: 'Bachelor of Science (BSc)', college: 'Alva’s Degree College, Moodbidri', year: '2021 – 2024', cgpa: '9.01 CGPA · Computer Science and Mathematics', logo: '/api/assets/logo-alvas' },
+  { _id: 'puc', degree: 'Pre-University Course (PUC)', college: 'Vani Pre-University College, Belthangady', year: '2019 – 2021', cgpa: '84% · Science (PCMB)', logo: '/api/assets/logo-vani' },
+  { _id: 'sslc', degree: 'SSLC', college: 'St. Theresa English Medium High School, Belthangady', year: '2016 – 2019', cgpa: '87%', logo: '/api/assets/logo-theresa' },
 ]
 
 export const certifications = [

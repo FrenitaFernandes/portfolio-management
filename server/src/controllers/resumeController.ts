@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import fs from "fs/promises";
+import Asset from "../models/Asset.js";
 import Resume from "../models/Resume.js";
 
 export const uploadResume = async (
@@ -12,14 +14,25 @@ export const uploadResume = async (
       });
     }
 
+    const resumeData = await fs.readFile(req.file.path);
+    await Asset.updateOne(
+      { key: "resume-latest" },
+      {
+        $set: {
+          fileName: req.file.originalname,
+          contentType: req.file.mimetype,
+          data: resumeData,
+        },
+      },
+      { upsert: true },
+    );
+
     await Resume.deleteMany();
 
     const resume =
       await Resume.create({
-        fileName: req.file.filename,
-        fileUrl:
-          "/uploads/resumes/" +
-          req.file.filename,
+        fileName: req.file.originalname,
+        fileUrl: "/api/assets/resume-latest",
       });
 
     res.status(201).json(resume);

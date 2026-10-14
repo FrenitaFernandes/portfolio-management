@@ -21,6 +21,11 @@ const experienceSchema = new Schema(
       type: String,
       required: true,
     },
+
+    skills: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
